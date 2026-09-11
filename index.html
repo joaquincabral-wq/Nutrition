@@ -1,68 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <meta name="description" content="JC Training: entrenamiento, nutrición y progreso personal." />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="JC Training" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="v3.css" />
-  <link rel="stylesheet" href="v4.css" />
-  <link rel="stylesheet" href="v4_1.css" />
-  <link rel="stylesheet" href="v4_2.css" />
-  <link rel="stylesheet" href="v5.css" />
-  <link rel="stylesheet" href="v6.css" />
-  <link rel="stylesheet" href="v7.css" />
-  <link rel="stylesheet" href="v7_1.css" />
-  <link rel="stylesheet" href="v9.css" />
-  <link rel="stylesheet" href="v10.css" />
-  <link rel="stylesheet" href="v10_2.css" />
-  <link rel="stylesheet" href="v10_3.css" />
-  <link rel="stylesheet" href="v10_4.css" />
-  <link rel="stylesheet" href="v10_5.css" />
-  <link rel="stylesheet" href="v10_6.css" />
-  <link rel="stylesheet" href="v10_7.css" />
-  <link rel="stylesheet" href="v11.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="JC Nutrition: comidas, mediciones, progreso y copias de seguridad.">
   <title>JC Nutrition</title>
-  <link rel="stylesheet" href="nutrition_v1.css" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app" class="app-shell">
-    <header class="topbar"><div><div class="eyebrow">JC TRAINING</div><h1 id="pageTitle">Hoy</h1></div><button id="installBtn" class="ghost-btn hidden">Instalar app</button></header>
-    <main id="content" class="content"></main>
-    <nav class="bottom-nav" aria-label="Navegación principal">
-      <button data-view="today" class="nav-btn active">Hoy</button><button data-view="training" class="nav-btn">Entreno</button><button data-view="meals" class="nav-btn">Comidas</button><button data-view="measurements" class="nav-btn">Medidas</button><button data-view="progress" class="nav-btn">Progreso</button><button data-view="history" class="nav-btn">Historial</button>
-    </nav>
-  </div>
-  <div id="timerOverlay" class="timer-overlay hidden" role="dialog" aria-modal="true"><div class="timer-card"><div class="eyebrow">DESCANSO</div><div id="timerExercise" class="timer-exercise"></div><div id="timerValue" class="timer-value">00:00</div><div class="timer-actions"><button id="timerAdd" class="secondary-btn">+30 s</button><button id="timerPause" class="secondary-btn">Pausa</button><button id="timerMinimize" class="secondary-btn">Minimizar</button><button id="timerSkip" class="primary-btn">Saltar</button></div></div></div>
-  <div id="timerMini" class="timer-mini hidden"><div class="timer-mini-left"><strong id="timerMiniValue">00:00</strong><span id="timerMiniExercise"></span></div><div><button id="timerMiniPause" data-mini-action="pause" class="secondary-btn">Pausa</button> <button id="timerMiniSkip" data-mini-action="skip" class="secondary-btn">Saltar</button></div></div>
-  <div id="swapSheet" class="swap-sheet hidden"><div class="swap-panel" id="swapContent"></div></div>
-  <script src="app.js"></script>
-  <script src="v3.js"></script>
-  <script src="v4.js"></script>
-  <script src="v4_1.js"></script>
-  <script src="v4_2.js"></script>
-  <script src="v5.js"></script>
-  <script src="v6.js"></script>
-  <script src="v7.js"></script>
-  <script src="v7_1.js"></script>
-  <script src="v8.js"></script>
-  <script src="v9.js"></script>
-  <script src="v10.js"></script>
-  <script src="v10_2.js"></script>
-  <script src="v10_3.js"></script>
-  <script src="v10_4.js"></script>
-  <script src="v10_5.js"></script>
-  <script src="v10_6.js"></script>
-  <script src="v10_7.js"></script>
-  <script src="v11.js"></script>
-  <script src="nutrition_v1.js"></script>
+<div id="app">
+  <header class="topbar">
+    <div><div class="eyebrow">JC NUTRITION</div><h1 id="pageTitle">Hoy</h1></div>
+    <button id="installBtn" class="ghost hidden">Instalar</button>
+  </header>
+  <main id="content"></main>
+  <nav class="bottom-nav">
+    <button data-view="today" class="active">Hoy</button>
+    <button data-view="meals">Comidas</button>
+    <button data-view="measurements">Medidas</button>
+    <button data-view="progress">Progreso</button>
+    <button data-view="backup">Backup</button>
+  </nav>
+</div>
+<div id="modal" class="modal hidden"><div id="modalCard" class="modal-card"></div></div>
+<script src="app.js"></script>
 </body>
 </html>
