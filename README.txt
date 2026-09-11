@@ -22,3 +22,12 @@ Incluye:
 - Progreso: gráficos de peso, cintura, grasa y músculo.
 - Backup: exportar/importar, objetivos diarios y borrado completo.
 - Ninguna función de entrenamiento.
+
+NOVEDAD V2.1
+- Programación semanal de menús.
+- Plan por día y por comida.
+- Añadir alimentos desde la base personal.
+- Editar cantidades y macros del menú.
+- Copiar/pegar un día.
+- Duplicar un menú a otra fecha.
+- Aplicar el menú programado al registro real del día.

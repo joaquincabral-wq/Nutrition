@@ -1,6 +1,6 @@
 
 const APP_KEY='jcNutritionNoTraining_v2';
-const emptyState=()=>({settings:{kcal:2011,protein:0,carbs:0,fat:0},foods:[],daily:{},measurements:[]});
+const emptyState=()=>({settings:{kcal:2011,protein:0,carbs:0,fat:0},foods:[],daily:{},measurements:[],menuPlans:{}});
 let db=load();
 let currentView='today';
 let deferredPrompt=null;
@@ -8,7 +8,7 @@ let deferredPrompt=null;
 function load(){
   try{
     const x=JSON.parse(localStorage.getItem(APP_KEY));
-    return x&&typeof x==='object'?Object.assign(emptyState(),x):emptyState();
+    if(x&&typeof x==='object'){const merged=Object.assign(emptyState(),x);merged.menuPlans=merged.menuPlans||{};return merged}return emptyState();
   }catch{return emptyState()}
 }
 function save(){localStorage.setItem(APP_KEY,JSON.stringify(db))}
@@ -94,7 +94,7 @@ function renderMeals(){
   content().innerHTML=`
   <section class="card">
     <div class="toolbar"><div><div class="kicker">PLAN Y REGISTRO</div><h2>Comidas</h2></div><input id="mealDateKeep" class="date" type="date" value="${date}" onchange="renderMeals()"></div>
-    <div class="actions"><button class="btn primary" onclick="openAddEntry(document.getElementById('mealDateKeep').value)">+ Añadir alimento</button><button class="btn secondary" onclick="openFoodDB()">Base de alimentos</button><button class="btn blue" onclick="openBarcode()">Código de barras</button></div>
+    <div class="actions"><button class="btn primary" onclick="openAddEntry(document.getElementById('mealDateKeep').value)">+ Añadir alimento</button><button class="btn secondary" onclick="openMenuPlanner(document.getElementById('mealDateKeep').value)">📅 Programar menús</button><button class="btn secondary" onclick="openFoodDB()">Base de alimentos</button><button class="btn blue" onclick="openBarcode()">Código de barras</button></div>
   </section>
   <section class="card">${renderDayMeals(date)}</section>
   <section class="card"><h2>Resumen</h2>${mealSummary(date)}</section>`;
@@ -183,6 +183,96 @@ async function lookupBarcode(){
     let f={id:uid(),name:p.product_name_es||p.product_name||'Producto '+code,brand:p.brands||'',serving:100,unit:'g',kcal:num(n['energy-kcal_100g']),protein:num(n.proteins_100g),carbs:num(n.carbohydrates_100g),fat:num(n.fat_100g),fiber:num(n.fiber_100g),sugar:num(n.sugars_100g),barcode:code};
     db.foods.push(f);save();barcodeResult.innerHTML=`<div class="notice"><b>${esc(f.name)}</b><br>${Math.round(f.kcal)} kcal / 100 g. Guardado en tu base.</div>`;
   }catch{barcodeResult.innerHTML='<div class="notice danger-note">No se ha encontrado el producto. Puedes crearlo manualmente en la base de alimentos.</div>'}
+}
+
+
+function mondayOf(dateStr){
+  let d=new Date((dateStr||todayISO())+'T12:00:00');
+  let day=(d.getDay()+6)%7; d.setDate(d.getDate()-day);
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)
+}
+function addDays(dateStr,n){
+  let d=new Date(dateStr+'T12:00:00');d.setDate(d.getDate()+n);
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)
+}
+function planDay(date){if(!db.menuPlans[date])db.menuPlans[date]={};return db.menuPlans[date]}
+function openMenuPlanner(anchor=todayISO()){
+  const monday=mondayOf(anchor);
+  showModal(`<div class="toolbar"><div><div class="kicker">PROGRAMACIÓN SEMANAL</div><h2>Menús</h2></div><button class="btn secondary" onclick="closeModal()">Cerrar</button></div>
+  <div class="toolbar"><button class="btn secondary" onclick="shiftPlanner('${monday}',-7)">← Semana anterior</button><span class="pill">${monday} · ${addDays(monday,6)}</span><button class="btn secondary" onclick="shiftPlanner('${monday}',7)">Semana siguiente →</button></div>
+  <p class="muted">Programa las comidas antes de cada día. Después puedes pasarlas al registro diario con un toque y modificar cantidades si hace falta.</p>
+  <div id="plannerWeek">${renderPlannerWeek(monday)}</div>`);
+}
+function shiftPlanner(monday,days){openMenuPlanner(addDays(monday,days))}
+function renderPlannerWeek(monday){
+  return Array.from({length:7},(_,i)=>{
+    let date=addDays(monday,i),pd=planDay(date);
+    return `<section class="card" style="margin-top:12px">
+      <div class="toolbar">
+        <div><b>${new Date(date+'T12:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'})}</b></div>
+        <div class="actions"><button class="btn blue" onclick="applyPlanToDay('${date}')">Usar este menú</button><button class="btn secondary" onclick="copyPlanDay('${date}')">Copiar</button></div>
+      </div>
+      ${MEALS.map(meal=>{
+        let items=(pd[meal]||[]);
+        return `<div class="meal-card"><div class="meal-head"><h3>${meal}</h3><button class="btn secondary" onclick="addPlanItem('${date}','${meal}')">+ Añadir</button></div>
+        ${items.length?items.map(x=>`<div class="food-row"><div><div class="food-name">${esc(x.name)}</div><div class="food-meta">${fmt(x.qty)} ${esc(x.unit||'g')} · ${Math.round(num(x.kcal))} kcal · P ${fmt(x.protein)} · HC ${fmt(x.carbs)} · G ${fmt(x.fat)}</div></div><div class="actions"><button class="btn secondary" onclick="editPlanItem('${date}','${meal}','${x.id}')">Editar</button><button class="btn danger" onclick="deletePlanItem('${date}','${meal}','${x.id}')">×</button></div></div>`).join(''):'<div class="muted small">Sin programar</div>'}
+        </div>`
+      }).join('')}
+      <div class="actions"><button class="btn secondary" onclick="duplicatePlanDay('${date}')">Duplicar a otro día</button><button class="btn secondary" onclick="pastePlanDay('${date}')">Pegar menú</button><button class="btn danger" onclick="clearPlanDay('${date}')">Vaciar día</button></div>
+    </section>`
+  }).join('')
+}
+function addPlanItem(date,meal){openPlanItemEditor(date,meal,null)}
+function editPlanItem(date,meal,id){
+  let item=(planDay(date)[meal]||[]).find(x=>x.id===id);openPlanItemEditor(date,meal,item)
+}
+function openPlanItemEditor(date,meal,item){
+  showModal(`<div class="toolbar"><h2>${item?'Editar':'Añadir'} · ${meal}</h2><button class="btn secondary" onclick="openMenuPlanner('${date}')">Atrás</button></div>
+  <label>Alimento</label><input id="pName" value="${esc(item?.name||'')}" placeholder="Ej. pollo">
+  <div class="grid2"><div><label>Cantidad</label><input id="pQty" type="number" step=".1" value="${item?.qty??''}"></div><div><label>Unidad</label><select id="pUnit">${['g','ml','unidad','ración'].map(x=>`<option ${item?.unit===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
+  <div class="grid4"><div><label>kcal</label><input id="pKcal" type="number" step=".1" value="${item?.kcal??''}"></div><div><label>Proteína</label><input id="pProtein" type="number" step=".1" value="${item?.protein??''}"></div><div><label>Hidratos</label><input id="pCarbs" type="number" step=".1" value="${item?.carbs??''}"></div><div><label>Grasa</label><input id="pFat" type="number" step=".1" value="${item?.fat??''}"></div></div>
+  <label>Buscar en mi base de alimentos</label><div class="search-row"><input id="pSearch" placeholder="Buscar"><button class="btn secondary" onclick="searchFoodForPlan()">Buscar</button></div><div id="pResults"></div>
+  <div class="actions"><button class="btn primary" onclick="savePlanItem('${date}','${meal}','${item?.id||''}')">Guardar</button></div>`);
+}
+function searchFoodForPlan(){
+  let q=pSearch.value.trim().toLowerCase();let res=db.foods.filter(f=>f.name.toLowerCase().includes(q)||String(f.brand||'').toLowerCase().includes(q)).slice(0,8);
+  pResults.innerHTML=res.length?res.map(f=>`<div class="food-row"><div><b>${esc(f.name)}</b><div class="food-meta">${esc(f.brand||'')} · ${Math.round(num(f.kcal))} kcal / ${fmt(f.serving||100)} ${esc(f.unit||'g')}</div></div><button class="btn blue" onclick="useFoodForPlan('${f.id}')">Usar</button></div>`).join(''):'<div class="empty">Sin coincidencias.</div>'
+}
+function useFoodForPlan(id){
+  let f=db.foods.find(x=>x.id===id);if(!f)return;
+  pName.value=f.name;pQty.value=f.serving||100;pUnit.value=f.unit||'g';pKcal.value=f.kcal;pProtein.value=f.protein;pCarbs.value=f.carbs;pFat.value=f.fat
+}
+function savePlanItem(date,meal,id){
+  let pd=planDay(date);pd[meal]=pd[meal]||[];
+  let data={id:id||uid(),name:pName.value.trim(),qty:num(pQty.value),unit:pUnit.value,kcal:num(pKcal.value),protein:num(pProtein.value),carbs:num(pCarbs.value),fat:num(pFat.value)};
+  if(!data.name)return alert('Indica el alimento.');
+  if(id)pd[meal]=pd[meal].map(x=>x.id===id?data:x);else pd[meal].push(data);
+  save();openMenuPlanner(date)
+}
+function deletePlanItem(date,meal,id){let pd=planDay(date);pd[meal]=(pd[meal]||[]).filter(x=>x.id!==id);save();openMenuPlanner(date)}
+function clearPlanDay(date){if(confirm('¿Vaciar toda la programación de este día?')){db.menuPlans[date]={};save();openMenuPlanner(date)}}
+function applyPlanToDay(date){
+  let pd=planDay(date),d=day(date),items=[];
+  MEALS.forEach(meal=>(pd[meal]||[]).forEach(x=>items.push({...x,id:uid(),meal,omitted:false})));
+  if(!items.length)return alert('Ese día no tiene menú programado.');
+  if(d.entries.length&&!confirm('Ya hay alimentos registrados ese día. ¿Añadir también los programados?'))return;
+  d.entries.push(...items);save();alert('Menú añadido al registro del día.');openMenuPlanner(date)
+}
+function duplicatePlanDay(date){
+  let target=prompt('Fecha de destino (AAAA-MM-DD):',addDays(date,1));if(!target)return;
+  db.menuPlans[target]=JSON.parse(JSON.stringify(planDay(date)));
+  Object.values(db.menuPlans[target]).flat().forEach(x=>x.id=uid());
+  save();openMenuPlanner(date)
+}
+function copyPlanDay(date){
+  window.__copiedMenuPlan=JSON.parse(JSON.stringify(planDay(date)));alert('Menú del día copiado. En cualquier otro día usa “Pegar menú”.');
+}
+
+function pastePlanDay(date){
+  if(!window.__copiedMenuPlan)return alert('Primero copia el menú de otro día.');
+  db.menuPlans[date]=JSON.parse(JSON.stringify(window.__copiedMenuPlan));
+  Object.values(db.menuPlans[date]).flat().forEach(x=>x.id=uid());
+  save();openMenuPlanner(date)
 }
 
 function renderMeasurements(){
