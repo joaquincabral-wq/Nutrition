@@ -1,0 +1,25 @@
+JC TRAINING V7.2 — CORRECCIÓN DE INSTALACIÓN PWA
+
+Sustituye/sube estos archivos en la raíz del repositorio:
+- index.html
+- manifest.json
+- sw.js
+- icon-192.png
+- icon-512.png
+- apple-touch-icon.png
+
+No borres app.js, styles.css ni los archivos v3-v7.1 existentes.
+
+Cambios V7.2:
+- Manifest con id, scope y start_url absolutos a la raíz.
+- Iconos PNG 192x192 y 512x512 compatibles con instalación Android.
+- Icono maskable 512x512.
+- Metadatos mobile-web-app / apple-mobile-web-app.
+- Service worker con caché v7-2.
+
+Después de que Netlify publique:
+1. Abre jc-training.netlify.app en Chrome.
+2. Recarga una vez.
+3. Si ya existe un acceso directo antiguo de JC Training, elimínalo de la pantalla de inicio.
+4. Abre menú ⋮ de Chrome.
+5. Debe aparecer “Instalar aplicación” o “Instalar JC Training”, no solo “Añadir a pantalla de inicio”.

@@ -1,0 +1,1 @@
+.backup-card p{margin-top:0}.backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.backup-import{display:flex;align-items:center;justify-content:center;cursor:pointer}@media(max-width:420px){.backup-actions{grid-template-columns:1fr}}

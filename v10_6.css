@@ -1,0 +1,11 @@
+/* JC Training V10.6 */
+.v106-meal-done:not(.v106-meal-open) .food-list{display:none!important}
+.v106-meal-done{border-left:4px solid #22c55e}
+.v106-meal-done .meal-title strong::before{content:'✓ ';color:#16a34a}
+.v106-meal-toggle{margin-left:auto;padding:6px 10px;min-height:34px}
+.v105-mid{margin-top:10px;margin-bottom:10px}
+.v106-day-collapsed>:not(.section-title){display:none!important}
+.v106-clickable{cursor:pointer;gap:10px;align-items:center}
+.v106-clickable>div{flex:1;min-width:0}
+.v106-day-toggle{flex:0 0 auto;padding:7px 10px}
+.v106-control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}

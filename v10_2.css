@@ -1,0 +1,6 @@
+/* JC Training V10.2 */
+.measure-datetime-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.measurement-history{display:grid;gap:10px}
+.measurement-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.measurement-row p{margin:.3rem 0 0}
+@media (max-width:520px){.measure-datetime-grid{grid-template-columns:1fr 1fr}}

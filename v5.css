@@ -1,0 +1,11 @@
+/* JC Training V5 - reordenación de ejercicios */
+.order-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.order-toolbar .secondary-btn,.order-toolbar .primary-btn{flex:1 1 auto;min-width:120px}
+.order-note{font-size:10px;color:#94a3b8;line-height:1.4;margin-top:7px}
+.reorder-card{border:1px dashed rgba(125,211,252,.35);background:rgba(56,189,248,.04)}
+.reorder-head{display:flex;align-items:center;gap:10px}
+.drag-grip{font-size:22px;color:#64748b;line-height:1;user-select:none}
+.reorder-main{flex:1;min-width:0}.reorder-main strong{display:block;font-size:14px;color:#f8fafc}.reorder-main span{display:block;font-size:10px;color:#94a3b8;margin-top:3px}
+.reorder-actions{display:flex;gap:6px}.reorder-actions button{min-width:38px;height:38px;padding:0;border-radius:10px}
+.order-badge{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(34,197,94,.28);background:rgba(34,197,94,.07);color:#bbf7d0;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:700}
+@media(max-width:430px){.order-toolbar{display:grid;grid-template-columns:1fr 1fr}.order-toolbar button:last-child{grid-column:1/-1}.reorder-actions button{min-width:36px;height:36px}}
