@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="JC Nutrition: comidas y mediciones personales." />
+  <title>JC Nutrition</title>
+  <style>
+    :root{
+      --bg:#0f172a;--panel:#111827;--panel2:#1f2937;--text:#f8fafc;--muted:#94a3b8;
+      --accent:#22c55e;--accent2:#16a34a;--line:#334155;--danger:#ef4444;--input:#0b1220;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    button,input,select{font:inherit}
+    .app{max-width:760px;margin:0 auto;min-height:100vh;padding-bottom:88px}
+    header{position:sticky;top:0;z-index:5;background:rgba(15,23,42,.96);backdrop-filter:blur(10px);padding:18px 16px 12px;border-bottom:1px solid var(--line)}
+    .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--accent);font-weight:800}
+    h1{margin:4px 0 0;font-size:28px}
+    main{padding:16px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+    .card h2{margin:0 0 14px;font-size:18px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .metric{background:var(--panel2);padding:12px;border-radius:14px;text-align:center}
+    .metric strong{display:block;font-size:20px}
+    .metric span{font-size:12px;color:var(--muted)}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}
+    input,select{width:100%;background:var(--input);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{border:0;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer}
+    .primary{background:var(--accent);color:#052e16}
+    .secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+    .danger{background:transparent;color:#fecaca;border:1px solid #7f1d1d}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .meal{border-top:1px solid var(--line);padding:12px 0}
+    .meal:first-child{border-top:0}
+    .meal-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .meal small,.muted{color:var(--muted)}
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--panel2);font-size:11px;color:var(--muted)}
+    nav{position:fixed;left:0;right:0;bottom:0;background:rgba(17,24,39,.98);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:10}
+    nav .inner{width:min(760px,100%);display:grid;grid-template-columns:repeat(3,1fr);padding:8px}
+    nav button{background:transparent;color:var(--muted);border:0;padding:10px 4px;border-radius:12px;font-weight:700}
+    nav button.active{background:var(--panel2);color:var(--text)}
+    .hidden{display:none!important}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right}
+    th:first-child,td:first-child{text-align:left}
+    .topline{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .datebox{max-width:180px}
+    @media(max-width:540px){
+      .grid4{grid-template-columns:repeat(2,1fr)}
+      .row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">JC NUTRITION</div>
+    <h1 id="pageTitle">Hoy</h1>
+  </header>
+
+  <main>
+    <section id="view-today">
+      <div class="card">
+        <div class="topline">
+          <h2>Resumen diario</h2>
+          <input id="todayDate" class="datebox" type="date">
+        </div>
+        <div class="grid4">
+          <div class="metric"><strong id="sumKcal">0</strong><span>kcal</span></div>
+          <div class="metric"><strong id="sumProtein">0</strong><span>proteína g</span></div>
+          <div class="metric"><strong id="sumCarbs">0</strong><span>hidratos g</span></div>
+          <div class="metric"><strong id="sumFat">0</strong><span>grasa g</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Última medición</h2>
+        <div class="grid4">
+          <div class="metric"><strong id="lastWeight">—</strong><span>peso kg</span></div>
+          <div class="metric"><strong id="lastWaist">—</strong><span>cintura cm</span></div>
+          <div class="metric"><strong id="lastFat">—</strong><span>grasa %</span></div>
+          <div class="metric"><strong id="lastMuscle">—</strong><span>músculo kg</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Comidas de hoy</h2>
+        <div id="todayMeals"></div>
+      </div>
+    </section>
+
+    <section id="view-food" class="hidden">
+      <div class="card">
+        <h2>Añadir alimento</h2>
+        <div class="row">
+          <div><label>Fecha</label><input id="foodDate" type="date"></div>
+          <div><label>Comida</label>
+            <select id="mealType">
+              <option>Desayuno</option><option>Media mañana</option><option>Comida</option>
+              <option>Merienda</option><option>Cena</option><option>Otros</option>
+            </select>
+          </div>
+        </div>
+        <label>Alimento</label><input id="foodName" placeholder="Ej. Pechuga de pollo">
+        <div class="row">
+          <div><label>Cantidad</label><input id="foodQty" type="number" min="0" step="0.1" placeholder="Ej. 200"></div>
+          <div><label>Unidad</label>
+            <select id="foodUnit"><option>g</option><option>ml</option><option>unidad</option><option>ración</option></select>
+          </div>
+        </div>
+        <div class="grid4">
+          <div><label>kcal</label><input id="foodKcal" type="number" min="0" step="1"></div>
+          <div><label>Proteína</label><input id="foodProtein" type="number" min="0" step="0.1"></div>
+          <div><label>Hidratos</label><input id="foodCarbs" type="number" min="0" step="0.1"></div>
+          <div><label>Grasa</label><input id="foodFat" type="number" min="0" step="0.1"></div>
+        </div>
+        <div class="actions"><button class="btn primary" id="addFood">Guardar alimento</button></div>
+      </div>
+
+      <div class="card">
+        <div class="topline">
+          <h2>Registro</h2>
+          <input id="foodListDate" class="datebox" type="date">
+        </div>
+        <div id="foodList"></div>
+      </div>
+    </section>
+
+    <section id="view-measurements" class="hidden">
+      <div class="card">
+        <h2>Añadir medición</h2>
+        <label>Fecha</label><input id="measureDate" type="date">
+        <div class="row">
+          <div><label>Peso (kg)</label><input id="weight" type="number" step="0.1"></div>
+          <div><label>Cintura (cm)</label><input id="waist" type="number" step="0.1"></div>
+        </div>
+        <div class="row">
+          <div><label>Grasa corporal (%)</label><input id="bodyFat" type="number" step="0.1"></div>
+          <div><label>Masa muscular (kg)</label><input id="muscle" type="number" step="0.1"></div>
+        </div>
+        <label>Notas</label><input id="measureNote" placeholder="Opcional">
+        <div class="actions"><button class="btn primary" id="addMeasurement">Guardar medición</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Historial de medidas</h2>
+        <div style="overflow:auto">
+          <table>
+            <thead><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Grasa</th><th>Músculo</th><th></th></tr></thead>
+            <tbody id="measureTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Copia de seguridad</h2>
+        <p class="muted">Los datos se guardan en este dispositivo. Puedes exportarlos para conservar una copia.</p>
+        <div class="actions">
+          <button class="btn secondary" id="exportData">Exportar datos</button>
+          <label class="btn secondary" style="margin:0;cursor:pointer">Importar datos<input id="importData" type="file" accept=".json" class="hidden"></label>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav>
+  <div class="inner">
+    <button data-view="today" class="active">Hoy</button>
+    <button data-view="food">Comidas</button>
+    <button data-view="measurements">Medidas</button>
+  </div>
+</nav>
+
+<script>
+const KEY = "jc_nutrition_v1";
+const state = JSON.parse(localStorage.getItem(KEY) || '{"foods":[],"measurements":[]}');
+
+function isoToday(){
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+  return local.toISOString().slice(0,10);
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function n(v){ return Number(v || 0); }
+function fmt(v,dec=1){ return Number.isFinite(Number(v)) ? Number(v).toFixed(dec).replace(".0","") : "—"; }
+
+const today = isoToday();
+["todayDate","foodDate","foodListDate","measureDate"].forEach(id=>document.getElementById(id).value=today);
+
+function renderToday(){
+  const date = document.getElementById("todayDate").value;
+  const foods = state.foods.filter(x=>x.date===date);
+  const sums = foods.reduce((a,x)=>({
+    kcal:a.kcal+n(x.kcal), protein:a.protein+n(x.protein),
+    carbs:a.carbs+n(x.carbs), fat:a.fat+n(x.fat)
+  }),{kcal:0,protein:0,carbs:0,fat:0});
+  sumKcal.textContent=Math.round(sums.kcal);
+  sumProtein.textContent=fmt(sums.protein);
+  sumCarbs.textContent=fmt(sums.carbs);
+  sumFat.textContent=fmt(sums.fat);
+
+  const latest=[...state.measurements].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  lastWeight.textContent=latest?fmt(latest.weight):"—";
+  lastWaist.textContent=latest?fmt(latest.waist):"—";
+  lastFat.textContent=latest?fmt(latest.bodyFat):"—";
+  lastMuscle.textContent=latest?fmt(latest.muscle):"—";
+
+  todayMeals.innerHTML = foods.length ? foods.map(foodHTML).join("") : '<p class="muted">Todavía no has registrado alimentos para este día.</p>';
+}
+
+function foodHTML(x){
+  return `<div class="meal">
+    <div class="meal-head">
+      <div><strong>${escapeHtml(x.name)}</strong><br><small>${escapeHtml(x.meal)} · ${fmt(x.qty)} ${escapeHtml(x.unit)}</small></div>
+      <span class="pill">${Math.round(n(x.kcal))} kcal</span>
+    </div>
+    <small>P ${fmt(x.protein)} · HC ${fmt(x.carbs)} · G ${fmt(x.fat)}</small>
+  </div>`;
+}
+
+function renderFoods(){
+  const date=foodListDate.value;
+  const foods=state.foods.filter(x=>x.date===date);
+  foodList.innerHTML = foods.length ? foods.map(x=>`
+    <div class="meal">
+      <div class="meal-head">
+        <div><strong>${escapeHtml(x.name)}</strong><br><small>${escapeHtml(x.meal)} · ${fmt(x.qty)} ${escapeHtml(x.unit)}</small></div>
+        <button class="btn danger" onclick="deleteFood('${x.id}')">Eliminar</button>
+      </div>
+      <small>${Math.round(n(x.kcal))} kcal · P ${fmt(x.protein)} · HC ${fmt(x.carbs)} · G ${fmt(x.fat)}</small>
+    </div>`).join("") : '<p class="muted">Sin alimentos registrados.</p>';
+}
+
+function renderMeasurements(){
+  const rows=[...state.measurements].sort((a,b)=>b.date.localeCompare(a.date));
+  measureTable.innerHTML = rows.length ? rows.map(x=>`
+    <tr><td>${x.date}</td><td>${fmt(x.weight)}</td><td>${fmt(x.waist)}</td><td>${fmt(x.bodyFat)}</td><td>${fmt(x.muscle)}</td>
+    <td><button class="btn danger" onclick="deleteMeasurement('${x.id}')">×</button></td></tr>`).join("")
+    : '<tr><td colspan="6" class="muted">Sin mediciones.</td></tr>';
+}
+
+function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+
+addFood.addEventListener("click",()=>{
+  const name=foodName.value.trim();
+  if(!name){alert("Indica el alimento.");return;}
+  state.foods.push({
+    id:crypto.randomUUID(), date:foodDate.value, meal:mealType.value, name,
+    qty:n(foodQty.value), unit:foodUnit.value, kcal:n(foodKcal.value),
+    protein:n(foodProtein.value), carbs:n(foodCarbs.value), fat:n(foodFat.value)
+  });
+  save();
+  ["foodName","foodQty","foodKcal","foodProtein","foodCarbs","foodFat"].forEach(id=>document.getElementById(id).value="");
+  foodListDate.value=foodDate.value;
+  renderFoods(); renderToday();
+});
+
+addMeasurement.addEventListener("click",()=>{
+  if(!weight.value && !waist.value && !bodyFat.value && !muscle.value){alert("Introduce al menos una medición.");return;}
+  const existing=state.measurements.find(x=>x.date===measureDate.value);
+  const data={date:measureDate.value,weight:n(weight.value)||"",waist:n(waist.value)||"",bodyFat:n(bodyFat.value)||"",muscle:n(muscle.value)||"",note:measureNote.value.trim()};
+  if(existing){Object.assign(existing,data);}
+  else state.measurements.push({id:crypto.randomUUID(),...data});
+  save(); renderMeasurements(); renderToday();
+});
+
+window.deleteFood=id=>{
+  state.foods=state.foods.filter(x=>x.id!==id);save();renderFoods();renderToday();
+}
+window.deleteMeasurement=id=>{
+  state.measurements=state.measurements.filter(x=>x.id!==id);save();renderMeasurements();renderToday();
+}
+
+todayDate.addEventListener("change",renderToday);
+foodListDate.addEventListener("change",renderFoods);
+
+document.querySelectorAll("nav button").forEach(btn=>btn.addEventListener("click",()=>{
+  const view=btn.dataset.view;
+  document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));
+  document.getElementById("view-"+view).classList.remove("hidden");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b===btn));
+  pageTitle.textContent={today:"Hoy",food:"Comidas",measurements:"Medidas"}[view];
+  if(view==="today")renderToday();
+  if(view==="food")renderFoods();
+  if(view==="measurements")renderMeasurements();
+}));
+
+exportData.addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="jc-nutrition-backup.json";a.click();URL.revokeObjectURL(a.href);
+});
+importData.addEventListener("change",async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());
+    if(!Array.isArray(data.foods)||!Array.isArray(data.measurements))throw new Error();
+    state.foods=data.foods; state.measurements=data.measurements; save();
+    renderToday();renderFoods();renderMeasurements();alert("Datos importados correctamente.");
+  }catch{alert("El archivo no es válido.");}
+});
+
+renderToday();renderFoods();renderMeasurements();
+</script>
+</body>
+</html>
