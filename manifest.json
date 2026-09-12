@@ -2,7 +2,7 @@
   "id": "./",
   "name": "JC Nutrition",
   "short_name": "JC Nutrition",
-  "description": "Alimentación, macros y progreso corporal.",
+  "description": "Comidas, macros, mediciones, progreso y backup.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
