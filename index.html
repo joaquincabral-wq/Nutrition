@@ -1,131 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <meta name="description" content="JC Training: entrenamiento, nutrición y progreso personal." />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="JC Nutrition" />
-  <link rel="manifest" href="./manifest.json?v=6" />
-  <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png" />
-  <link rel="apple-touch-icon" href="./icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="v3.css" />
-  <link rel="stylesheet" href="v4.css" />
-  <link rel="stylesheet" href="v4_1.css" />
-  <link rel="stylesheet" href="v4_2.css" />
-  <link rel="stylesheet" href="v5.css" />
-  <link rel="stylesheet" href="v6.css" />
-  <link rel="stylesheet" href="v7.css" />
-  <link rel="stylesheet" href="v7_1.css" />
-  <link rel="stylesheet" href="v9.css" />
-  <link rel="stylesheet" href="v10.css" />
-  <link rel="stylesheet" href="v10_2.css" />
-  <link rel="stylesheet" href="v10_3.css" />
-  <link rel="stylesheet" href="v10_4.css" />
-  <link rel="stylesheet" href="v10_5.css" />
-  <link rel="stylesheet" href="v10_6.css" />
-  <link rel="stylesheet" href="v10_7.css" />
-  <link rel="stylesheet" href="v11.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>JC Nutrition</title>
-  <link rel="stylesheet" href="nutrition_v5.css?v=50" />
-
-<style id="jn-v6-critical">
-/* V6 critical: hide ALL legacy training/session UI even before JS runs */
-.v103-session-section,.v103-sticky,.v104-sticky,.v11-session-end,
-.workout-card,.training-card,.training-summary,[data-workout-section],
-#workoutToday,.timer-overlay,.timer-mini { display:none !important; }
-body[data-jnv6="1"] .bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
-</style>
-
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div id="app" class="app-shell">
-    <header class="topbar"><div><div class="eyebrow">JC NUTRITION</div><h1 id="pageTitle">Hoy</h1></div><button id="installBtn" class="ghost-btn hidden">Instalar app</button></header>
-    <main id="content" class="content"></main>
-    <nav class="bottom-nav" aria-label="Navegación principal">
-<button data-view="today" class="nav-btn active">Hoy</button>
-<button data-view="meals" class="nav-btn">Comidas</button>
-<button data-view="measurements" class="nav-btn">Medidas</button>
-<button data-view="progress" class="nav-btn">Progreso</button>
-<button data-view="backup" class="nav-btn">Backup</button>
-</nav>
-  </div>
-  <div id="timerOverlay" class="timer-overlay hidden" role="dialog" aria-modal="true"><div class="timer-card"><div class="eyebrow">DESCANSO</div><div id="timerExercise" class="timer-exercise"></div><div id="timerValue" class="timer-value">00:00</div><div class="timer-actions"><button id="timerAdd" class="secondary-btn">+30 s</button><button id="timerPause" class="secondary-btn">Pausa</button><button id="timerMinimize" class="secondary-btn">Minimizar</button><button id="timerSkip" class="primary-btn">Saltar</button></div></div></div>
-  <div id="timerMini" class="timer-mini hidden"><div class="timer-mini-left"><strong id="timerMiniValue">00:00</strong><span id="timerMiniExercise"></span></div><div><button id="timerMiniPause" data-mini-action="pause" class="secondary-btn">Pausa</button> <button id="timerMiniSkip" data-mini-action="skip" class="secondary-btn">Saltar</button></div></div>
-  <div id="swapSheet" class="swap-sheet hidden"><div class="swap-panel" id="swapContent"></div></div>
-  <script src="app.js"></script>
-  <script src="v3.js"></script>
-  <script src="v4.js"></script>
-  <script src="v4_1.js"></script>
-  <script src="v4_2.js"></script>
-  <script src="v5.js"></script>
-  <script src="v6.js"></script>
-  <script src="v7.js"></script>
-  <script src="v7_1.js"></script>
-  <script src="v8.js"></script>
-  <script src="v9.js"></script>
-  <script src="v10.js"></script>
-  <script src="v10_2.js"></script>
-  <script src="v10_3.js"></script>
-  <script src="v10_4.js"></script>
-  <script src="v10_5.js"></script>
-  <script src="v10_6.js"></script>
-  <script src="v10_7.js"></script>
-  <script src="v11.js"></script>
-  <script src="nutrition_v5.js?v=50"></script>
+  <header class="topbar">
+    <div class="brand">JC NUTRITION</div>
+    <h1 id="pageTitle">Hoy</h1>
+    <div class="version">CLEAN V1</div>
+  </header>
 
-<script id="jn-v6-bootstrap">
-(function(){
-  try{
-    document.body && document.body.setAttribute('data-jnv6','1');
-    // Remove legacy training nodes repeatedly during initial render.
-    const kill = () => {
-      const content = document.getElementById('content');
-      if(!content) return;
-      const sels = [
-        '.v103-session-section','.v103-sticky','.v104-sticky','.v11-session-end',
-        '.workout-card','.training-card','.training-summary','[data-workout-section]',
-        '#workoutToday','.timer-overlay','.timer-mini'
-      ];
-      sels.forEach(s => content.querySelectorAll(s).forEach(n=>n.remove()));
-      [...content.querySelectorAll(':scope > .section,:scope > .card')].forEach(b=>{
-        const t=(b.textContent||'').toLowerCase();
-        if(
-          t.includes('cronómetro general') ||
-          t.includes('iniciar entrenamiento') ||
-          t.includes('añadir ejercicio') ||
-          t.includes('¿con qué termino?') ||
-          t.includes('series base') ||
-          t.includes('descansos automáticos')
-        ) b.remove();
-      });
-    };
-    new MutationObserver(kill).observe(document.documentElement,{childList:true,subtree:true});
-    document.addEventListener('DOMContentLoaded',()=>{kill(); setTimeout(kill,50); setTimeout(kill,300);});
-    window.__JC_NUTRITION_BUILD__='V6';
-  }catch(e){ console.error(e); }
-})();
-</script>
+  <main id="content"></main>
 
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <button data-view="today" class="nav active">Hoy</button>
+    <button data-view="meals" class="nav">Comidas</button>
+    <button data-view="measurements" class="nav">Medidas</button>
+    <button data-view="progress" class="nav">Progreso</button>
+    <button data-view="backup" class="nav">Backup</button>
+  </nav>
 
-<script id="jn-v6-badge">
-document.addEventListener('DOMContentLoaded',()=>{
-  const h=document.querySelector('header');
-  if(h && !document.getElementById('jnBuildBadge')){
-    const b=document.createElement('div');
-    b.id='jnBuildBadge';
-    b.textContent='V6';
-    b.style.cssText='position:absolute;top:14px;right:18px;font-size:11px;color:#64748b;font-weight:800;letter-spacing:.08em';
-    h.style.position='relative';
-    h.appendChild(b);
-  }
-});
-</script>
-
-  <script src="v6_update.js?v=6"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
