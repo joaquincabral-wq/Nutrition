@@ -279,7 +279,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V3</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
@@ -306,10 +306,77 @@ async function importBackup(file){
   location.reload();
  }catch(e){backupStatus.textContent='Archivo no válido.'}
 }
+
+const SCALE_FOODS = [
+  {name:'Arroz', rawToCooked:2.8, kcal:360,p:7,c:80,f:.7},
+  {name:'Pasta', rawToCooked:2.4, kcal:350,p:12,c:72,f:1.5},
+  {name:'Patata', rawToCooked:.87, kcal:77,p:2,c:17,f:.1},
+  {name:'Batata', rawToCooked:.88, kcal:86,p:1.6,c:20,f:.1},
+  {name:'Pollo', rawToCooked:.76, kcal:120,p:23,c:0,f:2.6},
+  {name:'Pavo', rawToCooked:.76, kcal:115,p:24,c:0,f:1.5},
+  {name:'Ternera magra', rawToCooked:.75, kcal:170,p:24,c:0,f:8},
+  {name:'Cinta de lomo', rawToCooked:.76, kcal:150,p:22,c:0,f:6},
+  {name:'Merluza', rawToCooked:.84, kcal:86,p:18.5,c:0,f:1.8},
+  {name:'Bacalao', rawToCooked:.84, kcal:82,p:18,c:0,f:.7},
+  {name:'Dorada', rawToCooked:.82, kcal:115,p:20,c:0,f:4},
+  {name:'Salmón', rawToCooked:.80, kcal:208,p:20,c:0,f:13},
+  {name:'Atún fresco', rawToCooked:.82, kcal:144,p:23,c:0,f:5}
+];
+
+function scaleOptions(selected=''){
+  return SCALE_FOODS.map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');
+}
+function convertRawCooked(){
+  const food=SCALE_FOODS.find(f=>f.name===document.getElementById('scFood').value);
+  const qty=parseFloat(document.getElementById('scQty').value);
+  const dir=document.getElementById('scDir').value;
+  const out=document.getElementById('scResult');
+  if(!food||!Number.isFinite(qty)){out.textContent='Introduce una cantidad válida.';return;}
+  const result=dir==='rawToCooked'?qty*food.rawToCooked:qty/food.rawToCooked;
+  out.innerHTML=`<strong>${Math.round(result)} g</strong><br><span class="note">Estimación orientativa. La cocción real puede variar por agua, tiempo y método.</span>`;
+}
+function equivalentAmount(){
+  const a=SCALE_FOODS.find(f=>f.name===document.getElementById('eqA').value);
+  const b=SCALE_FOODS.find(f=>f.name===document.getElementById('eqB').value);
+  const qty=parseFloat(document.getElementById('eqQty').value);
+  const criterion=document.getElementById('eqCriterion').value;
+  const out=document.getElementById('eqResult');
+  if(!a||!b||!Number.isFinite(qty)){out.textContent='Completa los campos.';return;}
+  let va,vb,label;
+  if(criterion==='protein'){va=a.p;vb=b.p;label='proteína';}
+  else if(criterion==='carbs'){va=a.c;vb=b.c;label='hidratos';}
+  else {va=a.kcal;vb=b.kcal;label='calorías';}
+  if(!vb){out.textContent=`${b.name} no es adecuado para equivalencia por ${label}.`;return;}
+  const target=qty*(va/vb);
+  out.innerHTML=`<strong>${Math.round(target)} g de ${b.name}</strong><br><span class="note">Equivalencia aproximada por ${label}.</span>`;
+}
+function renderScale(){
+ document.getElementById('content').innerHTML=`
+ <section class="section"><div class="card hero"><div class="eyebrow">BÁSCULA</div><h2>Crudo ↔ cocinado</h2><p>Conversión orientativa según el alimento y la cocción habitual.</p></div></section>
+ <section class="section"><div class="card"><div class="section-title"><h2>Conversor</h2><span>estimación</span></div>
+ <label class="field"><span>Alimento</span><select id="scFood" class="input">${scaleOptions('Arroz')}</select></label>
+ <div class="row"><label class="field"><span>Cantidad</span><input id="scQty" class="input" type="number" inputmode="decimal" value="75"></label>
+ <label class="field"><span>Dirección</span><select id="scDir" class="input"><option value="rawToCooked">Crudo → cocinado</option><option value="cookedToRaw">Cocinado → crudo</option></select></label></div>
+ <button id="scCalc" class="primary" style="width:100%">Calcular</button>
+ <div id="scResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>
+ <section class="section"><div class="card"><div class="section-title"><h2>Equivalencias</h2><span>entre alimentos</span></div>
+ <div class="row"><label class="field"><span>Alimento A</span><select id="eqA" class="input">${scaleOptions('Arroz')}</select></label>
+ <label class="field"><span>Gramos A</span><input id="eqQty" class="input" type="number" value="75"></label></div>
+ <div class="row"><label class="field"><span>Alimento B</span><select id="eqB" class="input">${scaleOptions('Patata')}</select></label>
+ <label class="field"><span>Criterio</span><select id="eqCriterion" class="input"><option value="calories">Calorías</option><option value="protein">Proteína</option><option value="carbs">Hidratos</option></select></label></div>
+ <button id="eqCalc" class="primary" style="width:100%">Calcular equivalencia</button>
+ <div id="eqResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>`;
+ document.getElementById('scCalc').onclick=convertRawCooked;
+ document.getElementById('eqCalc').onclick=equivalentAmount;
+ convertRawCooked();
+ equivalentAmount();
+}
+
 function render(){
- setPage(state.view==='today'?'Hoy':state.view==='meals'?'Comidas':state.view==='measurements'?'Medidas':state.view==='progress'?'Progreso':'Backup');
+ setPage(state.view==='today'?'Hoy':state.view==='meals'?'Comidas':state.view==='scale'?'Báscula':state.view==='measurements'?'Medidas':state.view==='progress'?'Progreso':'Backup');
  if(state.view==='today')renderToday();
  if(state.view==='meals')renderMeals();
+ if(state.view==='scale')renderScale();
  if(state.view==='measurements')renderMeasurements();
  if(state.view==='progress')renderProgress();
  if(state.view==='backup')renderBackup();

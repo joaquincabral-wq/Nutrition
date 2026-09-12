@@ -1,16 +1,9 @@
-JC Nutrition CLEAN V3
+JC Nutrition CLEAN V4
 
-Nueva función:
-- Botón Cambiar en cada alimento.
-- Sustituciones inteligentes con cantidad equivalente.
-- Proteínas/pescados: equivalencia priorizando proteína.
-- Arroz/patata/batata/avena: equivalencia por hidratos.
-- Frutas: equivalencia por hidratos.
-- Verduras: sustitución por peso similar.
-- Biblioteca ampliada con pavo, cinta de lomo, ternera, salmón, atún,
-  gambas, sandía, frambuesas, moras, plátano, ciruelas, calabacín,
-  berenjena, brócoli y coliflor.
-- Se puede modificar manualmente la cantidad propuesta.
-- Los macros del día se recalculan automáticamente tras cada cambio.
+Nueva pestaña: BÁSCULA
 
-Sigue siendo una app exclusivamente de nutrición.
+- Conversión crudo ↔ cocinado para arroz, pasta, patata, batata, pollo, pavo, ternera, cinta de lomo, merluza, bacalao, dorada, salmón y atún.
+- Equivalencias entre alimentos por calorías, proteína o hidratos.
+- Las conversiones crudo/cocinado son estimaciones orientativas.
+- La Báscula no modifica automáticamente el menú.
+- Mantiene todo lo incluido en CLEAN V3.
