@@ -1,0 +1,11 @@
+
+/* JC Nutrition V3 */
+.v103-sticky,.v104-sticky,.v11-session-end,.timer-overlay,.timer-mini{display:none!important}
+.bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+.jn3-backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.jn3-file-btn{display:flex;align-items:center;justify-content:center;min-height:54px;cursor:pointer}
+.jn3-backup-actions button{min-height:54px;font-weight:800}
+@media(max-width:520px){
+  .jn3-backup-actions{grid-template-columns:1fr}
+  .bottom-nav .nav-btn{font-size:.72rem;padding-left:2px;padding-right:2px}
+}
