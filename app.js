@@ -74,6 +74,66 @@ const DB=[
  ['pescado',['pescado'],110,20,0,3]
 ];
 
+
+const SMART_FOODS=[
+ {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
+ {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
+ {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6},
+ {name:'Ternera magra',cat:'proteina',kcal:170,p:24,c:0,f:8},
+ {name:'Merluza',cat:'proteina',kcal:86,p:18.5,c:0,f:1.8},
+ {name:'Bacalao',cat:'proteina',kcal:82,p:18,c:0,f:.7},
+ {name:'Dorada',cat:'proteina',kcal:115,p:20,c:0,f:4},
+ {name:'Salmón',cat:'proteina',kcal:208,p:20,c:0,f:13},
+ {name:'Atún fresco',cat:'proteina',kcal:144,p:23,c:0,f:5},
+ {name:'Gambas',cat:'proteina',kcal:99,p:24,c:.2,f:.3},
+ {name:'Arroz en crudo',cat:'hidrato',kcal:360,p:7,c:80,f:.7},
+ {name:'Patata en crudo',cat:'hidrato',kcal:77,p:2,c:17,f:.1},
+ {name:'Batata en crudo',cat:'hidrato',kcal:86,p:1.6,c:20,f:.1},
+ {name:'Avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
+ {name:'Melocotón',cat:'fruta',kcal:39,p:.9,c:9.5,f:.3},
+ {name:'Sandía',cat:'fruta',kcal:30,p:.6,c:7.6,f:.2},
+ {name:'Arándanos',cat:'fruta',kcal:57,p:.7,c:14.5,f:.3},
+ {name:'Frambuesas',cat:'fruta',kcal:52,p:1.2,c:12,f:.7},
+ {name:'Moras',cat:'fruta',kcal:43,p:1.4,c:10,f:.5},
+ {name:'Plátano',cat:'fruta',kcal:89,p:1.1,c:23,f:.3},
+ {name:'Ciruelas',cat:'fruta',kcal:46,p:.7,c:11,f:.3},
+ {name:'Calabacín',cat:'verdura',kcal:17,p:1.2,c:3.1,f:.3},
+ {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
+ {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
+ {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3}
+];
+
+function smartFoodFromText(text){
+ const t=String(text).toLowerCase();
+ const rules=[
+  ['Pollo',['pollo']],['Pavo plancha',['pavo']],['Cinta de lomo',['lomo']],
+  ['Ternera magra',['ternera','carne magra']],['Merluza',['merluza','pescado blanco']],
+  ['Bacalao',['bacalao']],['Dorada',['dorada']],['Salmón',['salmón','salmon']],
+  ['Atún fresco',['atún','atun']],['Gambas',['gambas','langostinos']],
+  ['Arroz en crudo',['arroz']],['Patata en crudo',['patata']],['Batata en crudo',['batata']],
+  ['Avena',['avena']],['Melocotón',['melocot']],['Sandía',['sandía','sandia']],
+  ['Arándanos',['arándan','arandan']],['Frambuesas',['framb']],['Moras',['moras']],
+  ['Plátano',['plátano','platano']],['Ciruelas',['ciruela']],['Calabacín',['calabac']],
+  ['Berenjena',['berenjena']],['Brócoli',['brócoli','brocoli']],['Coliflor',['coliflor']]
+ ];
+ for(const [name,keys] of rules){
+  if(keys.some(k=>t.includes(k))) return SMART_FOODS.find(x=>x.name===name);
+ }
+ return null;
+}
+
+function equivalentQty(originalText,target){
+ const src=smartFoodFromText(originalText), qty=parseQty(originalText);
+ if(!src||!target||qty==null) return null;
+ let q=qty;
+ if(src.cat==='proteina'&&target.cat==='proteina') q=qty*(src.p/target.p);
+ else if(src.cat==='hidrato'&&target.cat==='hidrato') q=qty*(src.c/target.c);
+ else if(src.cat==='fruta'&&target.cat==='fruta') q=qty*(src.c/target.c);
+ else if(src.cat==='verdura'&&target.cat==='verdura') q=qty;
+ else q=qty*(src.kcal/target.kcal);
+ return Math.max(5,Math.round(q/5)*5);
+}
+
 const state={view:'today',selectedDay:dayKey(),selectedDate:localISO()};
 
 function localISO(d=new Date()){
@@ -149,7 +209,7 @@ function mealCard(day,date,m,mi,editable=true){
  const done=!!load(`meals:${date}`,{})[mi];
  const foods=m[1].map((orig,fi)=>{
   const text=currentText(date,mi,fi,orig),isO=omitted(date,mi,fi),mac=macros(text);
-  return `<div class="food ${isO?'omitted':''}"><div><strong>${text}</strong>${mac.known?`<small>≈ ${Math.round(mac.kcal)} kcal · P ${Math.round(mac.p)} · HC ${Math.round(mac.c)} · G ${Math.round(mac.f)}</small>`:''}</div>${editable?`<div class="food-actions"><button class="tiny" data-edit="${mi}:${fi}">Editar</button><button class="tiny" data-omit="${mi}:${fi}">${isO?'Restaurar':'Omitir'}</button></div>`:''}</div>`;
+  return `<div class="food ${isO?'omitted':''}"><div><strong>${text}</strong>${mac.known?`<small>≈ ${Math.round(mac.kcal)} kcal · P ${Math.round(mac.p)} · HC ${Math.round(mac.c)} · G ${Math.round(mac.f)}</small>`:''}</div>${editable?`<div class="food-actions"><button class="tiny" data-edit="${mi}:${fi}">Cambiar</button><button class="tiny" data-omit="${mi}:${fi}">${isO?'Restaurar':'Omitir'}</button></div>`:''}</div>`;
  }).join('');
  const adds=addedFoods(date,mi).map((x,i)=>`<div class="food"><div><strong>${x}</strong><small>Añadido</small></div>${editable?`<button class="tiny danger" data-rmadd="${mi}:${i}">Quitar</button>`:''}</div>`).join('');
  return `<div class="card"><div class="meal-head"><strong>${m[0]}</strong>${editable?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div><details open><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button>`:''}</details></div>`;
@@ -157,13 +217,39 @@ function mealCard(day,date,m,mi,editable=true){
 function bindMealActions(day,date){
  document.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{const d=load(`meals:${date}`,{}),i=b.dataset.done;d[i]=!d[i];save(`meals:${date}`,d);render()});
  document.querySelectorAll('[data-omit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.omit.split(':'),k=`v6MealOmit:${date}`,d=load(k,{}),id=`${mi}:${fi}`;d[id]?delete d[id]:d[id]=true;save(k,d);render()});
- document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.edit.split(':').map(Number),plan=planForDay(day),orig=plan[mi][1][fi],cur=currentText(date,mi,fi,orig),val=prompt('Nuevo alimento/cantidad:',cur);if(val&&val.trim()){const k=`mealSubs:${date}`,d=load(k,{});d[`${mi}:${fi}`]={replacement:val.trim()};save(k,d);render()}});
+ document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
+ const [mi,fi]=b.dataset.edit.split(':').map(Number),plan=planForDay(day),orig=plan[mi][1][fi],cur=currentText(date,mi,fi,orig);
+ const src=smartFoodFromText(cur);
+ if(!src){
+  const val=prompt('Nuevo alimento/cantidad:',cur);
+  if(val&&val.trim()){const k=`mealSubs:${date}`,d=load(k,{});d[`${mi}:${fi}`]={replacement:val.trim(),mode:'manual'};save(k,d);render()}
+  return;
+ }
+ const opts=SMART_FOODS.filter(x=>x.cat===src.cat&&x.name!==src.name);
+ const menu=opts.map((x,i)=>`${i+1}. ${x.name}`).join('\n');
+ const pick=prompt(`Cambiar "${cur}" por:\n\n${menu}\n\nEscribe el número. Para un alimento no listado, escribe directamente alimento y cantidad.`);
+ if(!pick)return;
+ let replacement='';
+ const n=parseInt(pick,10);
+ if(Number.isInteger(n)&&n>=1&&n<=opts.length){
+  const target=opts[n-1],q=equivalentQty(cur,target);
+  const proposed=q?`${q} g ${target.name}`:target.name;
+  const finalQty=prompt(`Equivalencia propuesta para mantener el día equilibrado:\n${proposed}\n\nPuedes modificar la cantidad si lo necesitas:`,proposed);
+  if(!finalQty)return;
+  replacement=finalQty.trim();
+ }else replacement=pick.trim();
+ if(replacement){
+  const k=`mealSubs:${date}`,d=load(k,{});
+  d[`${mi}:${fi}`]={replacement,mode:'smart'};
+  save(k,d);render();
+ }
+});
  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const mi=b.dataset.add,val=prompt('Añadir alimento (ej. 200 g sandía):');if(val&&val.trim()){const k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||(d[mi]=[])).push(val.trim());save(k,d);render()}});
  document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render()});
 }
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day);
- document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
  bindMealActions(day,date);
 }
 function renderMeals(){
@@ -193,7 +279,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V2</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V3</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;

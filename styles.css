@@ -61,3 +61,5 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
   .food{grid-template-columns:1fr}.food-actions{justify-content:flex-start}
   .backup-actions{grid-template-columns:1fr}.nav{font-size:12px;padding:11px 2px}
 }
+
+.compact-tools{padding:14px 16px}.compact-tools strong{display:block;margin-bottom:5px;color:#dbeafe}
