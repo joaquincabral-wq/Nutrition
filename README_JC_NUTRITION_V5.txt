@@ -1,0 +1,1 @@
+JC Nutrition V5: Hoy renderizado desde cero solo con macros y comidas; Progreso solo corporal; Backup propio; sin render de entrenamiento.

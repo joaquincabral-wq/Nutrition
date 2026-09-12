@@ -1,4 +1,4 @@
-const CACHE = 'jc-nutrition-v4';
+const CACHE = 'jc-nutrition-v5';
 const ASSETS = [
   './app.js',
   './apple-touch-icon.png',
@@ -7,8 +7,8 @@ const ASSETS = [
   './icon.svg',
   './index.html',
   './manifest.json',
-  './nutrition_v4.css',
-  './nutrition_v4.js',
+  './nutrition_v5.css',
+  './nutrition_v5.js',
   './styles.css',
   './sw.js',
   './v10.css',
