@@ -1,0 +1,22 @@
+
+/* JC Nutrition V1.3 */
+.jn13-backup-card{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.jn13-backup-intro{
+  margin:0 0 4px;
+}
+.jn13-big-btn{
+  width:100%;
+  min-height:58px;
+  font-size:1rem;
+  font-weight:800;
+}
+.jn13-help{
+  color:#94a3b8;
+  font-size:.82rem;
+  line-height:1.4;
+  margin-top:4px;
+}
