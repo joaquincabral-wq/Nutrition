@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="JC Nutrition" />
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="manifest" href="./manifest.json?v=6" />
   <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
@@ -32,6 +32,15 @@
   <link rel="stylesheet" href="v11.css" />
   <title>JC Nutrition</title>
   <link rel="stylesheet" href="nutrition_v5.css?v=50" />
+
+<style id="jn-v6-critical">
+/* V6 critical: hide ALL legacy training/session UI even before JS runs */
+.v103-session-section,.v103-sticky,.v104-sticky,.v11-session-end,
+.workout-card,.training-card,.training-summary,[data-workout-section],
+#workoutToday,.timer-overlay,.timer-mini { display:none !important; }
+body[data-jnv6="1"] .bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
+</style>
+
 </head>
 <body>
   <div id="app" class="app-shell">
@@ -68,5 +77,55 @@
   <script src="v10_7.js"></script>
   <script src="v11.js"></script>
   <script src="nutrition_v5.js?v=50"></script>
+
+<script id="jn-v6-bootstrap">
+(function(){
+  try{
+    document.body && document.body.setAttribute('data-jnv6','1');
+    // Remove legacy training nodes repeatedly during initial render.
+    const kill = () => {
+      const content = document.getElementById('content');
+      if(!content) return;
+      const sels = [
+        '.v103-session-section','.v103-sticky','.v104-sticky','.v11-session-end',
+        '.workout-card','.training-card','.training-summary','[data-workout-section]',
+        '#workoutToday','.timer-overlay','.timer-mini'
+      ];
+      sels.forEach(s => content.querySelectorAll(s).forEach(n=>n.remove()));
+      [...content.querySelectorAll(':scope > .section,:scope > .card')].forEach(b=>{
+        const t=(b.textContent||'').toLowerCase();
+        if(
+          t.includes('cronómetro general') ||
+          t.includes('iniciar entrenamiento') ||
+          t.includes('añadir ejercicio') ||
+          t.includes('¿con qué termino?') ||
+          t.includes('series base') ||
+          t.includes('descansos automáticos')
+        ) b.remove();
+      });
+    };
+    new MutationObserver(kill).observe(document.documentElement,{childList:true,subtree:true});
+    document.addEventListener('DOMContentLoaded',()=>{kill(); setTimeout(kill,50); setTimeout(kill,300);});
+    window.__JC_NUTRITION_BUILD__='V6';
+  }catch(e){ console.error(e); }
+})();
+</script>
+
+
+<script id="jn-v6-badge">
+document.addEventListener('DOMContentLoaded',()=>{
+  const h=document.querySelector('header');
+  if(h && !document.getElementById('jnBuildBadge')){
+    const b=document.createElement('div');
+    b.id='jnBuildBadge';
+    b.textContent='V6';
+    b.style.cssText='position:absolute;top:14px;right:18px;font-size:11px;color:#64748b;font-weight:800;letter-spacing:.08em';
+    h.style.position='relative';
+    h.appendChild(b);
+  }
+});
+</script>
+
+  <script src="v6_update.js?v=6"></script>
 </body>
 </html>

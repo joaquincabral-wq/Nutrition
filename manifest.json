@@ -1,9 +1,9 @@
 {
-  "id": "./",
+  "id": "./?app=jc-nutrition-v6",
   "name": "JC Nutrition",
   "short_name": "JC Nutrition",
   "description": "Comidas, macros, medidas, progreso y backup.",
-  "start_url": "./",
+  "start_url": "./?app=jc-nutrition-v6",
   "scope": "./",
   "display": "standalone",
   "display_override": [

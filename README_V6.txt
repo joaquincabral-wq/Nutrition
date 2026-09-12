@@ -1,20 +1,16 @@
-JC Training V6
+JC NUTRITION V6
 
-Novedades:
-- Panel diario de kcal y macros aproximados: objetivo base / plan actual / consumido.
-- Porcentaje de cumplimiento de proteína, hidratos y grasas.
-- Distribución porcentual de macros del plan actual.
-- Botón Omitir en cada alimento.
-- Al omitir: opción de no compensar o proponer redistribución automática en comidas pendientes.
-- Redistribución por macro principal (proteína / hidratos / grasas), con confirmación del usuario.
-- Restaurar un alimento omitido o restaurar el plan original del día.
-- Mantiene sustituciones equivalentes, temporizadores, V5 de reordenación y resto de funciones.
+Objetivo principal: eliminar el arrastre de versiones antiguas en la PWA.
 
-IMPORTANTE: los datos nutricionales son estimaciones basadas en valores estándar. Para productos de marca (whey, bebida vegetal, etc.) pueden ajustarse más adelante con sus etiquetas reales.
+- Nuevo identificador/start_url de PWA.
+- Service worker nuevo con skipWaiting + clients.claim.
+- Borra todas las caches antiguas al activarse.
+- index/app/style usan network-first.
+- CSS y JS críticos eliminan cualquier bloque de entrenamiento heredado.
+- Se muestra una pequeña marca 'V6' arriba a la derecha para confirmar que se está cargando esta versión.
 
-Actualizar GitHub:
-1. Subir index.html y sw.js sustituyendo los actuales.
-2. Subir v6.js y v6.css como archivos nuevos.
-3. Subir README_V6.txt si se desea.
-4. Commit en main.
-5. Esperar al despliegue y cerrar/reabrir la PWA si sigue mostrando caché anterior.
+IMPORTANTE:
+Después de subirla a GitHub Pages, abrir primero la URL en Chrome con:
+?app=jc-nutrition-v6
+y comprobar que aparece 'V6'. Si la PWA instalada sigue mostrando la versión vieja,
+desinstalar el acceso/app anterior y volver a instalar desde esa URL.
