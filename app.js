@@ -71,16 +71,7 @@ const DB=[
  ['dorada',['dorada'],115,20,0,4],
  ['ensalada',['ensalada'],20,1,3,.2],
  ['aguacate',['aguacate'],160,2,8.5,14.7],
- ['pescado',['pescado'],110,20,0,3],
- ['salvado_avena',['salvado de avena','salvado'],246,17.3,66.2,7.0],
- ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4],
- ['sandia',['sandía','sandia'],30,0.6,7.6,0.2],
- ['frambuesas',['frambuesas','frambuesa'],52,1.2,12,0.7],
- ['moras',['moras','mora'],43,1.4,10,0.5],
- ['platano',['plátano','platano'],89,1.1,23,0.3],
- ['ciruelas',['ciruelas','ciruela'],46,0.7,11,0.3],
- ['calabacin',['calabacín','calabacin'],17,1.2,3.1,0.3],
- ['berenjena',['berenjena'],25,1.0,6,0.2]
+ ['pescado',['pescado'],110,20,0,3]
 ];
 
 
@@ -109,11 +100,7 @@ const SMART_FOODS=[
  {name:'Calabacín',cat:'verdura',kcal:17,p:1.2,c:3.1,f:.3},
  {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
  {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
- {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
- {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
- {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0},
- {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8,c:4,f:.2},
- {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4,c:4.8,f:.4}
+ {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3}
 ];
 
 function smartFoodFromText(text){
@@ -127,11 +114,7 @@ function smartFoodFromText(text){
   ['Avena',['avena']],['Melocotón',['melocot']],['Sandía',['sandía','sandia']],
   ['Arándanos',['arándan','arandan']],['Frambuesas',['framb']],['Moras',['moras']],
   ['Plátano',['plátano','platano']],['Ciruelas',['ciruela']],['Calabacín',['calabac']],
-  ['Berenjena',['berenjena']],['Brócoli',['brócoli','brocoli']],['Coliflor',['coliflor']],
-  ['Copos de avena',['copos de avena','copos']],
-  ['Salvado de avena',['salvado de avena','salvado']],
-  ['Queso fresco batido 0%',['queso fresco batido']],
-  ['Activia natural edulcorado',['activia']]
+  ['Berenjena',['berenjena']],['Brócoli',['brócoli','brocoli']],['Coliflor',['coliflor']]
  ];
  for(const [name,keys] of rules){
   if(keys.some(k=>t.includes(k))) return SMART_FOODS.find(x=>x.name===name);
@@ -142,14 +125,12 @@ function smartFoodFromText(text){
 function equivalentQty(originalText,target){
  const src=smartFoodFromText(originalText), qty=parseQty(originalText);
  if(!src||!target||qty==null) return null;
- let q;
- if(src.cat==='proteina'&&target.cat==='proteina'&&target.p>0) q=qty*(src.p/target.p);
- else if(src.cat==='hidrato'&&target.cat==='hidrato'&&target.c>0) q=qty*(src.c/target.c);
- else if(src.cat==='fruta'&&target.cat==='fruta'&&target.c>0) q=qty*(src.c/target.c);
+ let q=qty;
+ if(src.cat==='proteina'&&target.cat==='proteina') q=qty*(src.p/target.p);
+ else if(src.cat==='hidrato'&&target.cat==='hidrato') q=qty*(src.c/target.c);
+ else if(src.cat==='fruta'&&target.cat==='fruta') q=qty*(src.c/target.c);
  else if(src.cat==='verdura'&&target.cat==='verdura') q=qty;
- else if(src.cat==='lacteo'&&target.cat==='lacteo'&&target.kcal>0) q=qty*(src.kcal/target.kcal);
- else if(target.kcal>0) q=qty*(src.kcal/target.kcal);
- else return null;
+ else q=qty*(src.kcal/target.kcal);
  return Math.max(5,Math.round(q/5)*5);
 }
 
@@ -240,35 +221,28 @@ function bindMealActions(day,date){
  const [mi,fi]=b.dataset.edit.split(':').map(Number),plan=planForDay(day),orig=plan[mi][1][fi],cur=currentText(date,mi,fi,orig);
  const src=smartFoodFromText(cur);
  if(!src){
-  const val=prompt('No tengo una equivalencia automática para este alimento.
-
-Escribe el nuevo alimento y cantidad:',cur);
+  const val=prompt('Nuevo alimento/cantidad:',cur);
   if(val&&val.trim()){const k=`mealSubs:${date}`,d=load(k,{});d[`${mi}:${fi}`]={replacement:val.trim(),mode:'manual'};save(k,d);render()}
   return;
  }
- let opts=SMART_FOODS.filter(x=>x.cat===src.cat&&x.name!==src.name);
- if(!opts.length) opts=SMART_FOODS.filter(x=>x.name!==src.name);
- const menu=opts.map((x,i)=>`${i+1}. ${x.name}`).join('
-');
- const pick=prompt(`Cambiar "${cur}" por:
-
-${menu}
-
-Escribe el número. También puedes escribir manualmente alimento y cantidad.`);
+ const opts=SMART_FOODS.filter(x=>x.cat===src.cat&&x.name!==src.name);
+ const menu=opts.map((x,i)=>`${i+1}. ${x.name}`).join('\n');
+ const pick=prompt(`Cambiar "${cur}" por:\n\n${menu}\n\nEscribe el número. Para un alimento no listado, escribe directamente alimento y cantidad.`);
  if(!pick)return;
  let replacement='';
  const n=parseInt(pick,10);
  if(Number.isInteger(n)&&n>=1&&n<=opts.length){
   const target=opts[n-1],q=equivalentQty(cur,target);
   const proposed=q?`${q} g ${target.name}`:target.name;
-  const finalQty=prompt(`Equivalencia propuesta:
-${proposed}
-
-Puedes modificar la cantidad:`,proposed);
+  const finalQty=prompt(`Equivalencia propuesta para mantener el día equilibrado:\n${proposed}\n\nPuedes modificar la cantidad si lo necesitas:`,proposed);
   if(!finalQty)return;
   replacement=finalQty.trim();
  }else replacement=pick.trim();
- if(replacement){const k=`mealSubs:${date}`,d=load(k,{});d[`${mi}:${fi}`]={replacement,mode:'smart'};save(k,d);render()}
+ if(replacement){
+  const k=`mealSubs:${date}`,d=load(k,{});
+  d[`${mi}:${fi}`]={replacement,mode:'smart'};
+  save(k,d);render();
+ }
 });
  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const mi=b.dataset.add,val=prompt('Añadir alimento (ej. 200 g sandía):');if(val&&val.trim()){const k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||(d[mi]=[])).push(val.trim());save(k,d);render()}});
  document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render()});
@@ -305,7 +279,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V5</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
