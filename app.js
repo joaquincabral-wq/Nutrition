@@ -104,12 +104,56 @@ const SMART_FOODS=[
  {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
  {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
  {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
- {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0}
+ {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0},
+ {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2},
+ {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4},
+ {name:'Tomate natural',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
+ {name:'Tomate cherry',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
+ {name:'Lechuga',cat:'verdura',kcal:15,p:1.4,c:2.9,f:0.2},
+ {name:'Pepino',cat:'verdura',kcal:15,p:0.7,c:3.6,f:0.1},
+ {name:'Espárragos verdes',cat:'verdura',kcal:20,p:2.2,c:3.9,f:0.1},
+ {name:'Pimiento',cat:'verdura',kcal:31,p:1.0,c:6.0,f:0.3},
+ {name:'Champiñones',cat:'verdura',kcal:22,p:3.1,c:3.3,f:0.3},
+ {name:'Judías verdes',cat:'verdura',kcal:31,p:1.8,c:7.0,f:0.2},
+ {name:'Cebolla',cat:'verdura',kcal:40,p:1.1,c:9.3,f:0.1},
+ {name:'Espinacas',cat:'verdura',kcal:23,p:2.9,c:3.6,f:0.4},
+ {name:'Zanahoria',cat:'verdura',kcal:41,p:0.9,c:9.6,f:0.2},
+ {name:'Melón',cat:'fruta',kcal:34,p:0.8,c:8.2,f:0.2},
+ {name:'Naranja',cat:'fruta',kcal:47,p:0.9,c:11.8,f:0.1},
+ {name:'Manzana',cat:'fruta',kcal:52,p:0.3,c:13.8,f:0.2},
+ {name:'Pera',cat:'fruta',kcal:57,p:0.4,c:15.2,f:0.1},
+ {name:'Kiwi',cat:'fruta',kcal:61,p:1.1,c:14.7,f:0.5},
+ {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
+ {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
+ {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2},
+ {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5}
 ];
 
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
  const rules=[
+  ['Tomate cherry',['tomate cherry','cherry']],
+  ['Tomate natural',['tomate natural','tomate']],
+  ['Lechuga',['lechuga']],
+  ['Pepino',['pepino']],
+  ['Espárragos verdes',['espárragos','esparragos']],
+  ['Pimiento',['pimiento']],
+  ['Champiñones',['champiñ']],
+  ['Judías verdes',['judías verdes','judias verdes']],
+  ['Cebolla',['cebolla']],
+  ['Espinacas',['espinaca']],
+  ['Zanahoria',['zanahoria']],
+  ['Melón',['melón','melon']],
+  ['Naranja',['naranja']],
+  ['Manzana',['manzana']],
+  ['Pera',['pera']],
+  ['Kiwi',['kiwi']],
+  ['Pechuga de pollo',['pechuga de pollo']],
+  ['Pechuga de pavo',['pechuga de pavo']],
+  ['Claras de huevo',['claras']],
+  ['Pasta en crudo',['pasta']],
+  ['Queso fresco batido 0%',['queso fresco batido']],
+  ['Activia natural edulcorado',['activia']],
   ['Copos de avena',['copos de avena','copos']],
   ['Salvado de avena',['salvado de avena','salvado']],
   ['Pollo',['pollo']],['Pavo plancha',['pavo']],['Cinta de lomo',['lomo']],
@@ -136,6 +180,7 @@ function equivalentQty(originalText,target){
  else if(src.cat==='hidrato'&&target.cat==='hidrato') q=qty*(src.c/target.c);
  else if(src.cat==='fruta'&&target.cat==='fruta') q=qty*(src.c/target.c);
  else if(src.cat==='verdura'&&target.cat==='verdura') q=qty;
+ else if(src.cat==='lacteo'&&target.cat==='lacteo') q=qty*(src.kcal/target.kcal);
  else q=qty*(src.kcal/target.kcal);
  return Math.max(5,Math.round(q/5)*5);
 }
@@ -361,7 +406,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.3</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.5</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
