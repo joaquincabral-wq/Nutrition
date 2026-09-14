@@ -1,21 +1,12 @@
-JC Nutrition CLEAN V4.1
+JC Nutrition CLEAN V4.2
+Base: CLEAN V4.1.
 
-Base: CLEAN V4 estable.
+ÚNICO cambio funcional:
+- Botón “Restaurar menú original” en Hoy y Comidas.
+- Pide confirmación.
+- Borra sustituciones, omisiones, redistribuciones y alimentos añadidos del día.
+- No modifica el estado de comidas realizadas ni las medidas/progreso.
+- Recalcula la vista al restaurar.
 
-ÚNICO cambio:
-- Añadido Activia natural edulcorado a la base nutricional.
-
-Valores usados (por 100 g), según la etiqueta facilitada:
-- 39 kcal
-- 4.0 g proteína
-- 4.8 g hidratos
-- 0.4 g grasa
-
-Equivale por vasito de 120 g a aprox.:
-- 47 kcal
-- 4.8 g proteína
-- 5.8 g hidratos
-- 0.5 g grasa
-
-No se ha modificado ninguna otra función de CLEAN V4.
+Conserva Activia añadido en V4.1.
 JavaScript validado con node --check.

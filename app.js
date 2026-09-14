@@ -248,17 +248,27 @@ function bindMealActions(day,date){
  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const mi=b.dataset.add,val=prompt('Añadir alimento (ej. 200 g sandía):');if(val&&val.trim()){const k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||(d[mi]=[])).push(val.trim());save(k,d);render()}});
  document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render()});
 }
+function resetDayMenu(day,date){
+ if(!confirm('Se perderán los cambios manuales de alimentos y cantidades de este día. ¿Restaurar menú original?')) return;
+ localStorage.removeItem('mealSubs:'+date);
+ localStorage.removeItem('v6MealOmit:'+date);
+ localStorage.removeItem('v6MealRedis:'+date);
+ localStorage.removeItem('v10MealAdds:'+date);
+ render();
+}
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day);
- document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
  bindMealActions(day,date);
+ const rb=document.getElementById('reset-day-menu'); if(rb) rb.onclick=()=>resetDayMenu(day,date);
 }
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
  const day=state.selectedDay,date=nextDate(day),plan=planForDay(day),tot=dayTotals(day,date);
- document.getElementById('content').innerHTML=`<section class="section"><div class="day-tabs">${days.map(d=>`<button class="${d===day?'primary':'secondary'}" data-day="${d}">${d}</button>`).join('')}</div></section><section class="section"><div class="section-title"><h2>${day.toUpperCase()}</h2><span>${date}</span></div><div class="card"><strong>≈ ${Math.round(tot.kcal)} kcal</strong><p class="note">P ${Math.round(tot.p)} g · HC ${Math.round(tot.c)} g · G ${Math.round(tot.f)} g</p></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="day-tabs">${days.map(d=>`<button class="${d===day?'primary':'secondary'}" data-day="${d}">${d}</button>`).join('')}</div></section><section class="section"><div class="section-title"><h2>${day.toUpperCase()}</h2><span>${date}</span></div><div class="card"><strong>≈ ${Math.round(tot.kcal)} kcal</strong><p class="note">P ${Math.round(tot.p)} g · HC ${Math.round(tot.c)} g · G ${Math.round(tot.f)} g</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
  document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.selectedDay=b.dataset.day;render()});
  bindMealActions(day,date);
+ const rb=document.getElementById('reset-day-menu'); if(rb) rb.onclick=()=>resetDayMenu(day,date);
 }
 function nextDate(day){
  const target=DAYS.indexOf(day),d=new Date(),diff=(target-d.getDay()+7)%7;
@@ -280,7 +290,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.1</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.2</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
