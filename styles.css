@@ -65,3 +65,6 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .compact-tools{padding:14px 16px}.compact-tools strong{display:block;margin-bottom:5px;color:#dbeafe}
 
 @media(max-width:560px){.bottom-nav .nav{font-size:11px;padding:10px 1px}}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#0e1829;border:1px solid var(--line);border-radius:24px 24px 0 0;width:min(760px,100%);max-height:86vh;overflow:auto;padding:18px}

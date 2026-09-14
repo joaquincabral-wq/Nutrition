@@ -72,7 +72,8 @@ const DB=[
  ['ensalada',['ensalada'],20,1,3,.2],
  ['aguacate',['aguacate'],160,2,8.5,14.7],
  ['pescado',['pescado'],110,20,0,3],
- ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4]
+ ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4],
+ ['salvado_avena',['salvado de avena','salvado'],246,17.3,66.2,7.0]
 ];
 
 
@@ -101,12 +102,16 @@ const SMART_FOODS=[
  {name:'Calabacín',cat:'verdura',kcal:17,p:1.2,c:3.1,f:.3},
  {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
  {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
- {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3}
+ {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
+ {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
+ {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0}
 ];
 
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
  const rules=[
+  ['Copos de avena',['copos de avena','copos']],
+  ['Salvado de avena',['salvado de avena','salvado']],
   ['Pollo',['pollo']],['Pavo plancha',['pavo']],['Cinta de lomo',['lomo']],
   ['Ternera magra',['ternera','carne magra']],['Merluza',['merluza','pescado blanco']],
   ['Bacalao',['bacalao']],['Dorada',['dorada']],['Salmón',['salmón','salmon']],
@@ -215,37 +220,103 @@ function mealCard(day,date,m,mi,editable=true){
  const adds=addedFoods(date,mi).map((x,i)=>`<div class="food"><div><strong>${x}</strong><small>Añadido</small></div>${editable?`<button class="tiny danger" data-rmadd="${mi}:${i}">Quitar</button>`:''}</div>`).join('');
  return `<div class="card"><div class="meal-head"><strong>${m[0]}</strong>${editable?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div><details open><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button>`:''}</details></div>`;
 }
+
+function closeFoodModal(){
+ document.getElementById('food-change-modal')?.remove();
+}
+function foodOptions(list,selected=''){
+ return list.map(x=>`<option value="${x.name}" ${x.name===selected?'selected':''}>${x.name}</option>`).join('');
+}
+function openFoodChangeModal(day,date,mi,fi,currentText){
+ closeFoodModal();
+ const src=smartFoodFromText(currentText);
+ const options=src?SMART_FOODS.filter(x=>x.cat===src.cat):SMART_FOODS;
+ const targetDefault=options.find(x=>x.name!==src?.name)||options[0];
+ const suggested=src&&targetDefault?equivalentQty(currentText,targetDefault):(parseQty(currentText)||'');
+
+ const modal=document.createElement('div');
+ modal.id='food-change-modal';
+ modal.className='modal';
+ modal.innerHTML=`<div class="sheet">
+  <div class="section-title"><h2>Cambiar alimento</h2><button id="fmClose" class="tiny">Cerrar</button></div>
+  <p class="note">Original: <strong>${currentText}</strong></p>
+  <label class="field"><span>Alimento nuevo</span><select id="fmFood" class="input">${foodOptions(options,targetDefault?.name)}</select></label>
+  <div class="row">
+   <label class="field"><span>Cantidad</span><input id="fmQty" class="input" type="number" inputmode="decimal" value="${suggested||''}"></label>
+   <label class="field"><span>Unidad</span><select id="fmUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label>
+  </div>
+  <div id="fmEq" class="card" style="background:#0a1423"></div>
+  <div class="row"><button id="fmSave" class="primary">Guardar cambio</button><button id="fmCancel" class="secondary">Cancelar</button></div>
+ </div>`;
+ document.body.appendChild(modal);
+
+ const food=document.getElementById('fmFood');
+ const qty=document.getElementById('fmQty');
+ const unit=document.getElementById('fmUnit');
+ const eq=document.getElementById('fmEq');
+
+ function refresh(){
+  const target=SMART_FOODS.find(x=>x.name===food.value);
+  const q=target?equivalentQty(currentText,target):null;
+  if(q){
+   eq.innerHTML=`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}</strong><p class="note">Puedes modificar la cantidad antes de guardar.</p>`;
+   if(!qty.dataset.manual) qty.value=q;
+  }else{
+   eq.innerHTML='<strong>Sin equivalencia automática fiable.</strong><p class="note">Introduce la cantidad manualmente.</p>';
+  }
+ }
+ qty.oninput=()=>qty.dataset.manual='1';
+ food.onchange=()=>{qty.dataset.manual='';refresh()};
+ unit.onchange=refresh;
+ refresh();
+
+ document.getElementById('fmClose').onclick=closeFoodModal;
+ document.getElementById('fmCancel').onclick=closeFoodModal;
+ document.getElementById('fmSave').onclick=()=>{
+  const q=Number(qty.value);
+  if(!food.value||!Number.isFinite(q)||q<=0){alert('Introduce una cantidad válida.');return;}
+  const d=load(`mealSubs:${date}`,{});
+  d[`${mi}:${fi}`]={replacement:`${q} ${unit.value} ${food.value}`,mode:'fields'};
+  save(`mealSubs:${date}`,d);
+  closeFoodModal();
+  render();
+ };
+}
+function openFoodAddModal(day,date,mi){
+ closeFoodModal();
+ const modal=document.createElement('div');
+ modal.id='food-change-modal';
+ modal.className='modal';
+ modal.innerHTML=`<div class="sheet">
+  <div class="section-title"><h2>Añadir alimento</h2><button id="fmClose" class="tiny">Cerrar</button></div>
+  <label class="field"><span>Alimento</span><select id="fmFood" class="input">${foodOptions(SMART_FOODS)}</select></label>
+  <div class="row">
+   <label class="field"><span>Cantidad</span><input id="fmQty" class="input" type="number" inputmode="decimal" value="100"></label>
+   <label class="field"><span>Unidad</span><select id="fmUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label>
+  </div>
+  <div class="row"><button id="fmSave" class="primary">Añadir</button><button id="fmCancel" class="secondary">Cancelar</button></div>
+ </div>`;
+ document.body.appendChild(modal);
+ document.getElementById('fmClose').onclick=closeFoodModal;
+ document.getElementById('fmCancel').onclick=closeFoodModal;
+ document.getElementById('fmSave').onclick=()=>{
+  const food=document.getElementById('fmFood').value;
+  const qty=Number(document.getElementById('fmQty').value);
+  const unit=document.getElementById('fmUnit').value;
+  if(!food||!Number.isFinite(qty)||qty<=0){alert('Introduce una cantidad válida.');return;}
+  const d=load(`v10MealAdds:${date}`,{});
+  (d[String(mi)]||(d[String(mi)]=[])).push(`${qty} ${unit} ${food}`);
+  save(`v10MealAdds:${date}`,d);
+  closeFoodModal();
+  render();
+ };
+}
+
 function bindMealActions(day,date){
  document.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{const d=load(`meals:${date}`,{}),i=b.dataset.done;d[i]=!d[i];save(`meals:${date}`,d);render()});
  document.querySelectorAll('[data-omit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.omit.split(':'),k=`v6MealOmit:${date}`,d=load(k,{}),id=`${mi}:${fi}`;d[id]?delete d[id]:d[id]=true;save(k,d);render()});
- document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
- const [mi,fi]=b.dataset.edit.split(':').map(Number),plan=planForDay(day),orig=plan[mi][1][fi],cur=currentText(date,mi,fi,orig);
- const src=smartFoodFromText(cur);
- if(!src){
-  const val=prompt('Nuevo alimento/cantidad:',cur);
-  if(val&&val.trim()){const k=`mealSubs:${date}`,d=load(k,{});d[`${mi}:${fi}`]={replacement:val.trim(),mode:'manual'};save(k,d);render()}
-  return;
- }
- const opts=SMART_FOODS.filter(x=>x.cat===src.cat&&x.name!==src.name);
- const menu=opts.map((x,i)=>`${i+1}. ${x.name}`).join('\n');
- const pick=prompt(`Cambiar "${cur}" por:\n\n${menu}\n\nEscribe el número. Para un alimento no listado, escribe directamente alimento y cantidad.`);
- if(!pick)return;
- let replacement='';
- const n=parseInt(pick,10);
- if(Number.isInteger(n)&&n>=1&&n<=opts.length){
-  const target=opts[n-1],q=equivalentQty(cur,target);
-  const proposed=q?`${q} g ${target.name}`:target.name;
-  const finalQty=prompt(`Equivalencia propuesta para mantener el día equilibrado:\n${proposed}\n\nPuedes modificar la cantidad si lo necesitas:`,proposed);
-  if(!finalQty)return;
-  replacement=finalQty.trim();
- }else replacement=pick.trim();
- if(replacement){
-  const k=`mealSubs:${date}`,d=load(k,{});
-  d[`${mi}:${fi}`]={replacement,mode:'smart'};
-  save(k,d);render();
- }
-});
- document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const mi=b.dataset.add,val=prompt('Añadir alimento (ej. 200 g sandía):');if(val&&val.trim()){const k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||(d[mi]=[])).push(val.trim());save(k,d);render()}});
+ document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.edit.split(':').map(Number),plan=planForDay(day),orig=plan[mi][1][fi],cur=currentText(date,mi,fi,orig);openFoodChangeModal(day,date,mi,fi,cur)});
+ document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{openFoodAddModal(day,date,Number(b.dataset.add))});
  document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render()});
 }
 function resetDayMenu(day,date){
@@ -290,7 +361,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.2</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.3</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;

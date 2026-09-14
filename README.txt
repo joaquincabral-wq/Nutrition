@@ -1,12 +1,12 @@
-JC Nutrition CLEAN V4.2
-Base: CLEAN V4.1.
+JC Nutrition CLEAN V4.3
+Base: CLEAN V4.2 estable.
 
-ÚNICO cambio funcional:
-- Botón “Restaurar menú original” en Hoy y Comidas.
-- Pide confirmación.
-- Borra sustituciones, omisiones, redistribuciones y alimentos añadidos del día.
-- No modifica el estado de comidas realizadas ni las medidas/progreso.
-- Recalcula la vista al restaurar.
+Cambios:
+- Copos de avena ↔ Salvado de avena añadidos a equivalencias.
+- Cambiar alimento: alimento, cantidad y unidad en campos separados.
+- Muestra equivalencia sugerida y permite editar la cantidad.
+- Añadir alimento: alimento, cantidad y unidad en campos separados.
+- Mantiene Restaurar menú original.
+- No se modifica ninguna otra función.
 
-Conserva Activia añadido en V4.1.
 JavaScript validado con node --check.
