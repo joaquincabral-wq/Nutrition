@@ -1,9 +1,21 @@
-JC Nutrition CLEAN V4
+JC Nutrition CLEAN V4.1
 
-Nueva pestaña: BÁSCULA
+Base: CLEAN V4 estable.
 
-- Conversión crudo ↔ cocinado para arroz, pasta, patata, batata, pollo, pavo, ternera, cinta de lomo, merluza, bacalao, dorada, salmón y atún.
-- Equivalencias entre alimentos por calorías, proteína o hidratos.
-- Las conversiones crudo/cocinado son estimaciones orientativas.
-- La Báscula no modifica automáticamente el menú.
-- Mantiene todo lo incluido en CLEAN V3.
+ÚNICO cambio:
+- Añadido Activia natural edulcorado a la base nutricional.
+
+Valores usados (por 100 g), según la etiqueta facilitada:
+- 39 kcal
+- 4.0 g proteína
+- 4.8 g hidratos
+- 0.4 g grasa
+
+Equivale por vasito de 120 g a aprox.:
+- 47 kcal
+- 4.8 g proteína
+- 5.8 g hidratos
+- 0.5 g grasa
+
+No se ha modificado ninguna otra función de CLEAN V4.
+JavaScript validado con node --check.

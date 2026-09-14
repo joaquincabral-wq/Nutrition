@@ -71,7 +71,8 @@ const DB=[
  ['dorada',['dorada'],115,20,0,4],
  ['ensalada',['ensalada'],20,1,3,.2],
  ['aguacate',['aguacate'],160,2,8.5,14.7],
- ['pescado',['pescado'],110,20,0,3]
+ ['pescado',['pescado'],110,20,0,3],
+ ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4]
 ];
 
 
@@ -279,7 +280,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.1</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
