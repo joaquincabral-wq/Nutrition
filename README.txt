@@ -1,10 +1,8 @@
-JC Nutrition CLEAN V4.5
-Base: CLEAN V4.4.
+JC Nutrition CLEAN V4.6
+Base: CLEAN V4.5.
 
-Ampliación del catálogo de Cambiar/Añadir:
-Verduras/hortalizas: tomate natural, tomate cherry, lechuga, pepino, espárragos verdes, pimiento, champiñones, judías verdes, cebolla, espinacas y zanahoria (además de las ya existentes).
-Frutas: melón, naranja, manzana, pera y kiwi (además de las ya existentes).
-Proteínas/hidratos habituales: pechuga de pollo, pechuga de pavo, claras de huevo y pasta en crudo.
-Se mantienen QFB 0%, Activia, copos y salvado.
-No se modifica la interfaz ni el resto de funciones.
-JavaScript validado con node --check.
+Cambios:
+- Cambiar alimento muestra comparación nutricional en tiempo real: kcal, proteína, hidratos y grasa del original frente a la sustitución.
+- La comparación se actualiza al editar la cantidad.
+- Báscula incorpora Equivalencias de fruta con gramos equivalentes por calorías o hidratos y comparación de macros.
+- Mantiene todas las funciones y catálogo de V4.5.

@@ -68,3 +68,5 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:#0e1829;border:1px solid var(--line);border-radius:24px 24px 0 0;width:min(760px,100%);max-height:86vh;overflow:auto;padding:18px}
+
+.macro-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.macro-compare>div{padding:10px;border:1px solid var(--line);border-radius:12px}.macro-compare span,.macro-compare small{display:block}.macro-compare small{margin-top:4px;opacity:.8}

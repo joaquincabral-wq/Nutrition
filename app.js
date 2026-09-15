@@ -303,14 +303,16 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
  function refresh(){
   const target=SMART_FOODS.find(x=>x.name===food.value);
   const q=target?equivalentQty(currentText,target):null;
-  if(q){
-   eq.innerHTML=`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}</strong><p class="note">Puedes modificar la cantidad antes de guardar.</p>`;
-   if(!qty.dataset.manual) qty.value=q;
-  }else{
-   eq.innerHTML='<strong>Sin equivalencia automática fiable.</strong><p class="note">Introduce la cantidad manualmente.</p>';
-  }
+  if(q&&!qty.dataset.manual) qty.value=q;
+  const amount=Number(qty.value);
+  const original=macros(currentText);
+  const replacement=target&&Number.isFinite(amount)?{kcal:target.kcal*amount/100,p:target.p*amount/100,c:target.c*amount/100,f:target.f*amount/100}:null;
+  const suggestion=q?`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}</strong>`:'<strong>Sin equivalencia automática fiable.</strong>';
+  if(replacement){
+   eq.innerHTML=`${suggestion}<div class="macro-compare"><div><span>Original</span><strong>${Math.round(original.kcal)} kcal</strong><small>P ${original.p.toFixed(1)} · HC ${original.c.toFixed(1)} · G ${original.f.toFixed(1)}</small></div><div><span>Sustitución</span><strong>${Math.round(replacement.kcal)} kcal</strong><small>P ${replacement.p.toFixed(1)} · HC ${replacement.c.toFixed(1)} · G ${replacement.f.toFixed(1)}</small></div></div><p class="note">La comparación se actualiza al cambiar la cantidad.</p>`;
+  }else eq.innerHTML=`${suggestion}<p class="note">Introduce la cantidad manualmente.</p>`;
  }
- qty.oninput=()=>qty.dataset.manual='1';
+ qty.oninput=()=>{qty.dataset.manual='1';refresh()};
  food.onchange=()=>{qty.dataset.manual='';refresh()};
  unit.onchange=refresh;
  refresh();
@@ -406,7 +408,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.5</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.6</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
@@ -477,6 +479,25 @@ function equivalentAmount(){
   const target=qty*(va/vb);
   out.innerHTML=`<strong>${Math.round(target)} g de ${b.name}</strong><br><span class="note">Equivalencia aproximada por ${label}.</span>`;
 }
+
+const FRUIT_FOODS = SMART_FOODS.filter(x=>x.cat==='fruta');
+function fruitOptions(selected=''){
+ return FRUIT_FOODS.map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');
+}
+function fruitEquivalent(){
+ const a=FRUIT_FOODS.find(f=>f.name===document.getElementById('frA').value);
+ const b=FRUIT_FOODS.find(f=>f.name===document.getElementById('frB').value);
+ const qty=Number(document.getElementById('frQty').value);
+ const criterion=document.getElementById('frCriterion').value;
+ const out=document.getElementById('frResult');
+ if(!a||!b||!Number.isFinite(qty)||qty<=0){out.textContent='Completa los campos.';return;}
+ const va=criterion==='carbs'?a.c:a.kcal, vb=criterion==='carbs'?b.c:b.kcal;
+ const target=qty*(va/vb);
+ const am={kcal:a.kcal*qty/100,p:a.p*qty/100,c:a.c*qty/100,f:a.f*qty/100};
+ const bm={kcal:b.kcal*target/100,p:b.p*target/100,c:b.c*target/100,f:b.f*target/100};
+ out.innerHTML=`<strong>${Math.round(qty)} g de ${a.name} ≈ ${Math.round(target)} g de ${b.name}</strong><div class="macro-compare"><div><span>${a.name}</span><strong>${Math.round(am.kcal)} kcal</strong><small>P ${am.p.toFixed(1)} · HC ${am.c.toFixed(1)} · G ${am.f.toFixed(1)}</small></div><div><span>${b.name}</span><strong>${Math.round(bm.kcal)} kcal</strong><small>P ${bm.p.toFixed(1)} · HC ${bm.c.toFixed(1)} · G ${bm.f.toFixed(1)}</small></div></div><p class="note">Equivalencia aproximada por ${criterion==='carbs'?'hidratos':'calorías'}.</p>`;
+}
+
 function renderScale(){
  document.getElementById('content').innerHTML=`
  <section class="section"><div class="card hero"><div class="eyebrow">BÁSCULA</div><h2>Crudo ↔ cocinado</h2><p>Conversión orientativa según el alimento y la cocción habitual.</p></div></section>
@@ -492,11 +513,18 @@ function renderScale(){
  <div class="row"><label class="field"><span>Alimento B</span><select id="eqB" class="input">${scaleOptions('Patata')}</select></label>
  <label class="field"><span>Criterio</span><select id="eqCriterion" class="input"><option value="calories">Calorías</option><option value="protein">Proteína</option><option value="carbs">Hidratos</option></select></label></div>
  <button id="eqCalc" class="primary" style="width:100%">Calcular equivalencia</button>
- <div id="eqResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>`;
+ <div id="eqResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>
+ <section class="section"><div class="card"><div class="section-title"><h2>Equivalencias de fruta</h2><span>gramos y macros</span></div>
+ <div class="row"><label class="field"><span>Fruta A</span><select id="frA" class="input">${fruitOptions('Melocotón')}</select></label><label class="field"><span>Gramos A</span><input id="frQty" class="input" type="number" value="150"></label></div>
+ <div class="row"><label class="field"><span>Fruta B</span><select id="frB" class="input">${fruitOptions('Manzana')}</select></label><label class="field"><span>Criterio</span><select id="frCriterion" class="input"><option value="calories">Calorías</option><option value="carbs">Hidratos</option></select></label></div>
+ <button id="frCalc" class="primary" style="width:100%">Calcular fruta equivalente</button><div id="frResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>`;
  document.getElementById('scCalc').onclick=convertRawCooked;
  document.getElementById('eqCalc').onclick=equivalentAmount;
+ document.getElementById('frCalc').onclick=fruitEquivalent;
+ ['frA','frB','frQty','frCriterion'].forEach(id=>document.getElementById(id).onchange=fruitEquivalent);
  convertRawCooked();
  equivalentAmount();
+ fruitEquivalent();
 }
 
 function render(){
