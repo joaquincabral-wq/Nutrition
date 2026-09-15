@@ -169,7 +169,13 @@ function parseQty(text){
  if(u)return +u[1]*60;
  return null;
 }
-function foodDef(text){const t=text.toLowerCase();return DB.find(x=>x[1].some(p=>t.includes(p)))}
+function foodDef(text){
+ const t=String(text).toLowerCase();
+ const db=DB.find(x=>x[1].some(p=>t.includes(p)));
+ if(db) return db;
+ const smart=smartFoodFromText(text);
+ return smart ? [smart.name,[smart.name.toLowerCase()],smart.kcal,smart.p,smart.c,smart.f] : null;
+}
 function macros(text){
  const def=foodDef(text),q=parseQty(text);
  if(!def||q==null)return {kcal:0,p:0,c:0,f:0,known:false};
@@ -177,6 +183,16 @@ function macros(text){
  return {kcal:def[2]*factor,p:def[3]*factor,c:def[4]*factor,f:def[5]*factor,known:true};
 }
 function add(a,b){return {kcal:a.kcal+b.kcal,p:a.p+b.p,c:a.c+b.c,f:a.f+b.f}}
+function migrateBasePlanV6(){
+ if(localStorage.getItem('jcNutritionBasePlanVersion')==='6') return;
+ const month=localISO().slice(0,7);
+ const plans=load('v9Plans',{});
+ if(!plans[month]) plans[month]={};
+ plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
+ save('v9Plans',plans);
+ localStorage.setItem('jcNutritionBasePlanVersion','6');
+}
+
 function planForDay(day){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});
  return plans?.[month]?.meals?.[day] || BASE_MEALS[day];
@@ -339,6 +355,11 @@ function resetDayMenu(day,date){
  localStorage.removeItem('v6MealOmit:'+date);
  localStorage.removeItem('v6MealRedis:'+date);
  localStorage.removeItem('v10MealAdds:'+date);
+ const month=date.slice(0,7),plans=load('v9Plans',{});
+ if(!plans[month]) plans[month]={};
+ if(!plans[month].meals) plans[month].meals={};
+ plans[month].meals[day]=JSON.parse(JSON.stringify(BASE_MEALS[day]));
+ save('v9Plans',plans);
  render();
 }
 function renderToday(){
@@ -375,7 +396,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V5</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V6</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
@@ -505,4 +526,5 @@ function render(){
 }
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{state.view=b.dataset.view;render()});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+migrateBasePlanV6();
 render();
