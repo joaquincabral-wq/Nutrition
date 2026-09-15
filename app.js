@@ -2,48 +2,13 @@
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
 const BASE_MEALS={
- lunes:[
-  ['Desayuno postentreno',['60 g avena','30 g whey','100 g arándanos','300 ml bebida de almendras sin azúcar']],
-  ['Comida',['250 g pollo','75 g arroz en crudo','300 g verduras','10 g AOVE','150 g melón']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g melocotón','15 g pistachos']],
-  ['Cena',['250 g merluza','200 g patata en crudo','300 g verduras','10 g AOVE']]
- ],
- martes:[
-  ['Desayuno postentreno',['3 huevos','150 ml claras','60 g avena','100 g arándanos','250 ml bebida de almendras sin azúcar']],
-  ['Comida',['250 g ternera magra','75 g arroz en crudo','300 g verduras','5 g AOVE','150 g melón']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g melocotón']],
-  ['Cena',['300 g bacalao','200 g patata en crudo','300 g verduras','10 g AOVE']]
- ],
- miércoles:[
-  ['Desayuno postentreno',['60 g avena','30 g whey','10 g cacahuete en polvo','100 g arándanos','300 ml bebida de almendras']],
-  ['Comida',['250 g pollo/pavo','85 g arroz en crudo','300 g verduras','10 g AOVE','150 g fruta']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g fruta','15 g pistachos']],
-  ['Cena',['250 g dorada','250 g patata en crudo','300 g ensalada/verdura','5 g AOVE']]
- ],
- jueves:[
-  ['Desayuno postentreno',['3 huevos','150 ml claras','60 g avena','100 g fruta','250 ml bebida de almendras sin azúcar']],
-  ['Comida',['250 g pollo','75 g arroz en crudo','300 g verduras','10 g AOVE','150 g fruta']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g fruta']],
-  ['Cena',['250 g merluza','200 g patata en crudo','300 g verduras','10 g AOVE']]
- ],
- viernes:[
-  ['Desayuno postentreno',['60 g avena','30 g whey','10 g cacahuete en polvo','100 g arándanos','300 ml bebida de almendras']],
-  ['Comida',['250 g ternera magra','85 g arroz en crudo','300 g verduras','5 g AOVE','150 g fruta']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g fruta','15 g pistachos']],
-  ['Cena',['300 g pescado blanco','250 g patata en crudo','300 g verduras','10 g AOVE']]
- ],
- sábado:[
-  ['Desayuno',['2 huevos','150 ml claras','60 g aguacate','150 g fruta']],
-  ['Comida',['250 g pollo/pavo','60 g arroz en crudo','300 g verduras','10 g AOVE','150 g fruta']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g fruta']],
-  ['Cena',['250 g pescado','150 g patata en crudo','300 g ensalada','10 g AOVE']]
- ],
- domingo:[
-  ['Desayuno',['2 huevos','90 ml claras','60 g aguacate','150 g fruta']],
-  ['Comida',['250 g carne magra','200 g patata en crudo','300 g verduras','5 g AOVE','150 g fruta']],
-  ['Merienda',['250 g queso fresco batido 0%','150 g fruta']],
-  ['Cena',['250 g pescado blanco','150 g patata en crudo','300 g ensalada','10 g AOVE']]
- ]
+ lunes:[['Desayuno',['60 g avena','30 g whey','100 g arándanos','300 ml bebida de almendras sin azúcar']],['Comida',['250 g pechuga de pollo','75 g arroz en crudo','300 g verdura','10 g AOVE','150 g melón']],['Merienda',['250 g queso fresco batido 0%','150 g melocotón','15 g pistachos']],['Cena',['250 g merluza','200 g patata en crudo','300 g verdura o ensalada','10 g AOVE']]],
+ martes:[['Desayuno',['3 huevos','150 ml claras de huevo','60 g avena','100 g arándanos','250 ml bebida de almendras sin azúcar']],['Comida',['250 g ternera magra','75 g arroz en crudo','300 g verdura','5 g AOVE','150 g melón']],['Merienda',['250 g queso fresco batido 0%','150 g melocotón']],['Cena',['300 g bacalao','200 g patata en crudo','300 g verdura','10 g AOVE']]],
+ miércoles:[['Desayuno',['60 g avena','30 g whey','10 g cacahuete en polvo','100 g arándanos','300 ml bebida de almendras sin azúcar']],['Comida',['250 g pechuga de pollo o pavo','85 g arroz en crudo','300 g verdura','10 g AOVE','150 g fruta']],['Merienda',['250 g queso fresco batido 0%','150 g fruta','15 g pistachos']],['Cena',['250 g dorada','250 g patata en crudo','300 g ensalada o verdura','5 g AOVE']]],
+ jueves:[['Desayuno',['3 huevos','150 ml claras de huevo','60 g avena','100 g fruta','250 ml bebida de almendras sin azúcar']],['Comida',['250 g pechuga de pollo','75 g arroz en crudo','300 g verdura','10 g AOVE','150 g fruta']],['Merienda',['250 g queso fresco batido 0%','150 g fruta']],['Cena',['250 g merluza','200 g patata en crudo','300 g verdura','10 g AOVE']]],
+ viernes:[['Desayuno',['60 g avena','30 g whey','10 g cacahuete en polvo','100 g arándanos','300 ml bebida de almendras sin azúcar']],['Comida',['250 g ternera magra','85 g arroz en crudo','300 g verdura','5 g AOVE','150 g fruta']],['Merienda',['250 g queso fresco batido 0%','150 g fruta','15 g pistachos']],['Cena',['300 g pescado blanco','250 g patata en crudo','300 g verdura','10 g AOVE']]],
+ sábado:[['Desayuno',['2 huevos','150 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g pechuga de pollo o pavo','60 g arroz en crudo','300 g verdura','10 g AOVE','150 g fruta']],['Merienda',['250 g queso fresco batido 0%','150 g fruta']],['Cena',['250 g pescado','150 g patata en crudo','300 g ensalada','10 g AOVE']]],
+ domingo:[['Desayuno',['2 huevos','90 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g carne magra','200 g patata en crudo','300 g verdura','5 g AOVE','150 g fruta']],['Merienda',['250 g queso fresco batido 0%','150 g fruta']],['Cena',['250 g pescado blanco','150 g patata en crudo','300 g ensalada','10 g AOVE']]]
 };
 
 const DB=[
@@ -126,12 +91,14 @@ const SMART_FOODS=[
  {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
  {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
  {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2},
- {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5}
+ {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5},
+ {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1}
 ];
 
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
  const rules=[
+  ['Bebida de almendras sin azúcar',['bebida de almendras','almendras sin azúcar']],
   ['Tomate cherry',['tomate cherry','cherry']],
   ['Tomate natural',['tomate natural','tomate']],
   ['Lechuga',['lechuga']],
@@ -408,7 +375,7 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>CLEAN V4.6</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V5</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
