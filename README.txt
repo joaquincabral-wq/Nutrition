@@ -1,7 +1,9 @@
-JC Nutrition V6
-- Corrige el plan base guardado antiguo que ocultaba la bebida de almendras.
-- Martes incluye 250 ml de bebida de almendras sin azúcar.
-- Restaurar menú original recupera el BASE_MEALS V6 real.
-- Los alimentos de SMART_FOODS muestran macros aunque no tengan una entrada duplicada en DB.
-- Mantiene el resto de funciones de V5.
-- JavaScript validado con node --check.
+JC Nutrition V6.1
+
+Único cambio funcional:
+- Fresas añadidas a Cambiar/Añadir.
+- Valores por 100 g: 32 kcal, 0.7 g proteína, 7.7 g hidratos, 0.3 g grasa.
+- Añadidas a Báscula/equivalencias cuando aplica.
+- No se modifica ninguna otra función de V6.
+
+JavaScript validado con node --check.

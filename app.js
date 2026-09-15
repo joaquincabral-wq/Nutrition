@@ -38,7 +38,8 @@ const DB=[
  ['aguacate',['aguacate'],160,2,8.5,14.7],
  ['pescado',['pescado'],110,20,0,3],
  ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4],
- ['salvado_avena',['salvado de avena','salvado'],246,17.3,66.2,7.0]
+ ['salvado_avena',['salvado de avena','salvado'],246,17.3,66.2,7.0],
+ ['fresas',['fresas','fresa'],32,0.7,7.7,0.3]
 ];
 
 
@@ -92,12 +93,14 @@ const SMART_FOODS=[
  {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
  {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2},
  {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5},
- {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1}
+ {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1},
+ {name:'Fresas',cat:'fruta',kcal:32,p:0.7,c:7.7,f:0.3}
 ];
 
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
  const rules=[
+  ['Fresas',['fresas','fresa']],
   ['Bebida de almendras sin azúcar',['bebida de almendras','almendras sin azúcar']],
   ['Tomate cherry',['tomate cherry','cherry']],
   ['Tomate natural',['tomate natural','tomate']],
@@ -437,7 +440,8 @@ const SCALE_FOODS = [
   {name:'Bacalao', rawToCooked:.84, kcal:82,p:18,c:0,f:.7},
   {name:'Dorada', rawToCooked:.82, kcal:115,p:20,c:0,f:4},
   {name:'Salmón', rawToCooked:.80, kcal:208,p:20,c:0,f:13},
-  {name:'Atún fresco', rawToCooked:.82, kcal:144,p:23,c:0,f:5}
+  {name:'Atún fresco', rawToCooked:.82, kcal:144,p:23,c:0,f:5},
+  {name:'Fresas',rawToCooked:1.0,kcal:32,p:0.7,c:7.7,f:0.3}
 ];
 
 function scaleOptions(selected=''){
