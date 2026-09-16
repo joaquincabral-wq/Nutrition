@@ -70,3 +70,21 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .sheet{background:#0e1829;border:1px solid var(--line);border-radius:24px 24px 0 0;width:min(760px,100%);max-height:86vh;overflow:auto;padding:18px}
 
 .macro-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.macro-compare>div{padding:10px;border:1px solid var(--line);border-radius:12px}.macro-compare span,.macro-compare small{display:block}.macro-compare small{margin-top:4px;opacity:.8}
+
+
+/* V7.2 - Objetivos del día: estados visuales */
+.v7panel{margin:16px 0 20px;padding:18px;border-radius:22px}
+.v7head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.v7head select{max-width:100%}
+.v7row,.v7target{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px;margin:7px 0;border-radius:14px;border:1px solid transparent;background:rgba(255,255,255,.025)}
+.v7row span,.v7target span{color:var(--text,#f8fafc);font-weight:650}
+.v7row b,.v7target b{white-space:nowrap;font-weight:850}
+.v7row.ok,.v7target.ok{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.42)}
+.v7row.ok b,.v7target.ok b{color:#86efac}
+.v7row.warn,.v7target.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.42)}
+.v7row.warn b,.v7target.warn b{color:#fcd34d}
+.v7row.bad,.v7target.bad{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.44)}
+.v7row.bad b,.v7target.bad b{color:#fca5a5}
+.v7remain,.v7remaining{margin-top:12px;padding:12px 14px;border-radius:14px;background:#0a1423;line-height:1.45}
+.v7note{margin:10px 0 12px;color:var(--muted,#94a3b8);line-height:1.45}
+@media(max-width:560px){.v7head{align-items:flex-start;flex-direction:column}.v7head select{width:100%}.v7row,.v7target{padding:10px 11px}.v7row b,.v7target b{font-size:14px}}

@@ -1,9 +1,7 @@
-JC Nutrition V7.1
-
-Corrección:
-- Todos los alimentos del selector SMART_FOODS se reconocen por nombre exacto para macros.
-- Los alimentos añadidos manualmente muestran kcal, proteína, hidratos y grasa en la comida.
-- El modal “Añadir alimento” muestra una previsualización de macros en tiempo real según alimento y cantidad.
-- No se modifica el resto de funciones de V7.
-
-JavaScript validado con node --check.
+JC Nutrition V7.2
+- Corrige los colores del bloque Objetivos del día.
+- Verde: dentro de margen.
+- Ámbar: cerca o ligeramente fuera.
+- Rojo: desviación relevante.
+- Mejora separación visual entre etiqueta y valor.
+- Mantiene sin cambios la lógica nutricional de V7.1.
