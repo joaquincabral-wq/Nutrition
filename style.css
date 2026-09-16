@@ -1,0 +1,3 @@
+
+.v7row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.v7row.ok b{color:#63d58a}.v7row.warn b{color:#e8bd5a}.v7row.bad b{color:#ef7070}.v7remain{margin-top:12px;padding:12px;border-radius:12px;background:rgba(255,255,255,.045)}.meal-card.v7done{opacity:.72}.meal-card.v7done details:not([open]){margin-bottom:0}#v7TodayMeals{display:grid;gap:12px}.v7panel .field{margin-bottom:12px}

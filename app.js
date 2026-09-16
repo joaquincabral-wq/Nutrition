@@ -249,7 +249,7 @@ function mealCard(day,date,m,mi,editable=true){
   return `<div class="food ${isO?'omitted':''}"><div><strong>${text}</strong>${mac.known?`<small>≈ ${Math.round(mac.kcal)} kcal · P ${Math.round(mac.p)} · HC ${Math.round(mac.c)} · G ${Math.round(mac.f)}</small>`:''}</div>${editable?`<div class="food-actions"><button class="tiny" data-edit="${mi}:${fi}">Cambiar</button><button class="tiny" data-omit="${mi}:${fi}">${isO?'Restaurar':'Omitir'}</button></div>`:''}</div>`;
  }).join('');
  const adds=addedFoods(date,mi).map((x,i)=>`<div class="food"><div><strong>${x}</strong><small>Añadido</small></div>${editable?`<button class="tiny danger" data-rmadd="${mi}:${i}">Quitar</button>`:''}</div>`).join('');
- return `<div class="card"><div class="meal-head"><strong>${m[0]}</strong>${editable?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div><details open><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button>`:''}</details></div>`;
+ return `<div class="card meal-card ${done?'v7done':''}" data-meal-index="${mi}" data-meal-done="${done?1:0}"><div class="meal-head"><strong>${m[0]}</strong>${editable?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div><details ${done?'':'open'}><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button>`:''}</details></div>`;
 }
 
 function closeFoodModal(){
@@ -365,11 +365,33 @@ function resetDayMenu(day,date){
  save('v9Plans',plans);
  render();
 }
+
+const V7_DEFAULT_TARGETS={training:{kcal:2300,p:180,c:245,f:65},rest:{kcal:2100,p:180,c:175,f:75}};
+function v7Targets(){return load('v7Targets',JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)));}
+function v7DefaultType(day){return ['lunes','martes','miércoles','jueves','viernes'].includes(String(day).toLowerCase())?'training':'rest';}
+function v7Type(day,date){return load('v7DayTypes',{})[date]||v7DefaultType(day);}
+function v7Status(v,t,k){const r=t?v/t:0;if(k==='p'){if(r>=.95&&r<=1.12)return'ok';if(r>=.85)return'warn';return r>1.12?'warn':'bad';}if(r>1.08)return'bad';if(r>1||r<.85)return'warn';return'ok';}
+function v7ObjectivePanel(day,date){
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date),cons=consumedTotals(day,date);
+ const row=(n,k,u)=>`<div class="v7row ${v7Status(plan[k],t[k],k)}"><span>${n}</span><b>${Math.round(plan[k])} / ${t[k]} ${u}</b></div>`;
+ const left=k=>Math.max(0,Math.round(t[k]-cons[k]));
+ return `<section class="section"><div class="section-title"><h2>Objetivos del día</h2><span>${type==='training'?'entrenamiento':'descanso'}</span></div><div class="card v7panel">
+ <label class="field"><span>Tipo de día</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Día de entrenamiento</option><option value="rest"${type==='rest'?' selected':''}>Día de descanso</option></select></label>
+ <p class="note">Plan actual frente al objetivo. Verde = dentro del margen; ámbar = cerca o ligeramente fuera; rojo = desviación relevante.</p>
+ ${row('Calorías','kcal','kcal')}${row('Proteína','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
+ <div class="v7remain"><b>Según lo ya marcado, te quedan:</b><br>${left('kcal')} kcal · ${left('p')} P · ${left('c')} HC · ${left('f')} G</div>
+ <p class="note">Proteína: interesa aproximarse al objetivo. Calorías, hidratos y grasas disponibles son margen, no una obligación de comerlos.</p>
+ <button id="v7EditTargets" class="secondary" type="button">Editar objetivos</button></div></section>`;
+}
+function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
 function renderToday(){
- const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day);
- document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
+ const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{});
+ const ordered=plan.map((m,i)=>({m,i,done:!!done[i]})).sort((a,b)=>Number(a.done)-Number(b.done));
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
  bindMealActions(day,date);
- const rb=document.getElementById('reset-day-menu'); if(rb) rb.onclick=()=>resetDayMenu(day,date);
+ const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);
+ const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};
+ const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);
 }
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
@@ -399,14 +421,14 @@ function renderProgress(){
  document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V6</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V7</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
 }
 function exportBackup(){
  const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
- const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'1',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'7',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  backupStatus.textContent='Backup exportado.';
 }

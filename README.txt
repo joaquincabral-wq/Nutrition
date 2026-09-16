@@ -1,9 +1,10 @@
-JC Nutrition V6.1
+JC Nutrition V7
 
-Único cambio funcional:
-- Fresas añadidas a Cambiar/Añadir.
-- Valores por 100 g: 32 kcal, 0.7 g proteína, 7.7 g hidratos, 0.3 g grasa.
-- Añadidas a Báscula/equivalencias cuando aplica.
-- No se modifica ninguna otra función de V6.
-
-JavaScript validado con node --check.
+- Mantiene V6.1, incluidas fresas y equivalencias.
+- Objetivos editables: fuerza 2300 kcal / 180 P / 245 HC / 65 G; descanso 2100 kcal / 180 P / 175 HC / 75 G.
+- L-V fuerza por defecto; S-D descanso por defecto. El tipo de día puede cambiarse manualmente.
+- Panel compara el plan actual con el objetivo y muestra semáforo.
+- "Te quedan" se calcula según comidas ya marcadas; proteína es objetivo, kcal/HC/grasas son margen y no obligación.
+- En Hoy, comidas completadas pasan abajo y quedan contraídas. Comidas mantiene el orden original.
+- Dieta base no modificada.
+- JavaScript validado.
