@@ -176,7 +176,8 @@ function foodDef(text){
  const t=String(text).toLowerCase();
  const db=DB.find(x=>x[1].some(p=>t.includes(p)));
  if(db) return db;
- const smart=smartFoodFromText(text);
+ const exact=SMART_FOODS.find(x=>t.includes(String(x.name).toLowerCase()));
+ const smart=exact||smartFoodFromText(text);
  return smart ? [smart.name,[smart.name.toLowerCase()],smart.kcal,smart.p,smart.c,smart.f] : null;
 }
 function macros(text){
@@ -248,7 +249,10 @@ function mealCard(day,date,m,mi,editable=true){
   const text=currentText(date,mi,fi,orig),isO=omitted(date,mi,fi),mac=macros(text);
   return `<div class="food ${isO?'omitted':''}"><div><strong>${text}</strong>${mac.known?`<small>≈ ${Math.round(mac.kcal)} kcal · P ${Math.round(mac.p)} · HC ${Math.round(mac.c)} · G ${Math.round(mac.f)}</small>`:''}</div>${editable?`<div class="food-actions"><button class="tiny" data-edit="${mi}:${fi}">Cambiar</button><button class="tiny" data-omit="${mi}:${fi}">${isO?'Restaurar':'Omitir'}</button></div>`:''}</div>`;
  }).join('');
- const adds=addedFoods(date,mi).map((x,i)=>`<div class="food"><div><strong>${x}</strong><small>Añadido</small></div>${editable?`<button class="tiny danger" data-rmadd="${mi}:${i}">Quitar</button>`:''}</div>`).join('');
+ const adds=addedFoods(date,mi).map((x,i)=>{
+  const am=macros(x);
+  return `<div class="food"><div><strong>${x}</strong>${am.known?`<small>≈ ${Math.round(am.kcal)} kcal · P ${Math.round(am.p)} · HC ${Math.round(am.c)} · G ${Math.round(am.f)}</small>`:'<small>Macros no disponibles</small>'}<small>Añadido</small></div>${editable?`<button class="tiny danger" data-rmadd="${mi}:${i}">Quitar</button>`:''}</div>`;
+ }).join('');
  return `<div class="card meal-card ${done?'v7done':''}" data-meal-index="${mi}" data-meal-done="${done?1:0}"><div class="meal-head"><strong>${m[0]}</strong>${editable?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div><details ${done?'':'open'}><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button>`:''}</details></div>`;
 }
 
@@ -327,9 +331,26 @@ function openFoodAddModal(day,date,mi){
    <label class="field"><span>Cantidad</span><input id="fmQty" class="input" type="number" inputmode="decimal" value="100"></label>
    <label class="field"><span>Unidad</span><select id="fmUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label>
   </div>
+  <div id="fmAddMacros" class="card" style="background:#0a1423"></div>
   <div class="row"><button id="fmSave" class="primary">Añadir</button><button id="fmCancel" class="secondary">Cancelar</button></div>
  </div>`;
  document.body.appendChild(modal);
+ const addFood=document.getElementById('fmFood');
+ const addQty=document.getElementById('fmQty');
+ const addUnit=document.getElementById('fmUnit');
+ const addMacros=document.getElementById('fmAddMacros');
+ function refreshAddMacros(){
+   const q=Number(addQty.value);
+   const txt=`${Number.isFinite(q)?q:0} ${addUnit.value} ${addFood.value}`;
+   const m=macros(txt);
+   addMacros.innerHTML=m.known
+     ? `<strong>≈ ${Math.round(m.kcal)} kcal</strong><p class="note">P ${Math.round(m.p*10)/10} g · HC ${Math.round(m.c*10)/10} g · G ${Math.round(m.f*10)/10} g</p>`
+     : '<strong>Macros no disponibles</strong>';
+ }
+ addFood.onchange=refreshAddMacros;
+ addQty.oninput=refreshAddMacros;
+ addUnit.onchange=refreshAddMacros;
+ refreshAddMacros();
  document.getElementById('fmClose').onclick=closeFoodModal;
  document.getElementById('fmCancel').onclick=closeFoodModal;
  document.getElementById('fmSave').onclick=()=>{
