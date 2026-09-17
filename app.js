@@ -405,10 +405,22 @@ function v7ObjectivePanel(day,date){
  <button id="v7EditTargets" class="secondary" type="button">Editar objetivos</button></div></section>`;
 }
 function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
+
+function v73StickyBar(day,date){
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);
+ const cls=k=>v7Status(plan[k],t[k],k);
+ return `<div class="v73sticky" id="v73Sticky">
+   <span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal}</span>
+   <span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p}</span>
+   <span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c}</span>
+   <span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f}</span>
+ </div>`;
+}
+
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{});
  const ordered=plan.map((m,i)=>({m,i,done:!!done[i]})).sort((a,b)=>Number(a.done)-Number(b.done));
- document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
  bindMealActions(day,date);
  const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);
  const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};
@@ -496,8 +508,30 @@ function convertRawCooked(){
   const dir=document.getElementById('scDir').value;
   const out=document.getElementById('scResult');
   if(!food||!Number.isFinite(qty)){out.textContent='Introduce una cantidad válida.';return;}
-  const result=dir==='rawToCooked'?qty*food.rawToCooked:qty/food.rawToCooked;
-  out.innerHTML=`<strong>${Math.round(result)} g</strong><br><span class="note">Estimación orientativa. La cocción real puede variar por agua, tiempo y método.</span>`;
+
+  let result=qty, note='';
+  if(dir==='rawToCooked'){
+    result=qty*food.rawToCooked;
+    note='Estimación orientativa. La cocción real puede variar por agua, tiempo y método.';
+  }else if(dir==='cookedToRaw'){
+    result=qty/food.rawToCooked;
+    note='Estimación orientativa. La cocción real puede variar por agua, tiempo y método.';
+  }else{
+    const proteinFoods=['Pollo','Pavo','Ternera magra','Cinta de lomo','Merluza','Bacalao','Dorada','Salmón','Atún fresco'];
+    const thawFactor=proteinFoods.includes(food.name)?0.95:1.00;
+    if(dir==='frozenToThawed'){
+      result=qty*thawFactor;
+      note=proteinFoods.includes(food.name)
+        ? 'Estimación con una merma orientativa del 5% al descongelar. Si hay glaseado o hielo adherido, usa el peso neto/escurrido real.'
+        : 'Sin glaseado se considera aproximadamente 1:1. El peso real puede variar por pérdida de agua.';
+    }else if(dir==='thawedToFrozen'){
+      result=qty/thawFactor;
+      note=proteinFoods.includes(food.name)
+        ? 'Estimación inversa suponiendo una merma aproximada del 5% al descongelar.'
+        : 'Sin glaseado se considera aproximadamente 1:1.';
+    }
+  }
+  out.innerHTML=`<strong>${Math.round(result)} g</strong><br><span class="note">${note}</span>`;
 }
 function equivalentAmount(){
   const a=SCALE_FOODS.find(f=>f.name===document.getElementById('eqA').value);
@@ -539,7 +573,7 @@ function renderScale(){
  <section class="section"><div class="card"><div class="section-title"><h2>Conversor</h2><span>estimación</span></div>
  <label class="field"><span>Alimento</span><select id="scFood" class="input">${scaleOptions('Arroz')}</select></label>
  <div class="row"><label class="field"><span>Cantidad</span><input id="scQty" class="input" type="number" inputmode="decimal" value="75"></label>
- <label class="field"><span>Dirección</span><select id="scDir" class="input"><option value="rawToCooked">Crudo → cocinado</option><option value="cookedToRaw">Cocinado → crudo</option></select></label></div>
+ <label class="field"><span>Dirección</span><select id="scDir" class="input"><option value="rawToCooked">Crudo → cocinado</option><option value="cookedToRaw">Cocinado → crudo</option><option value="frozenToThawed">Congelado → descongelado</option><option value="thawedToFrozen">Descongelado → congelado</option></select></label></div>
  <button id="scCalc" class="primary" style="width:100%">Calcular</button>
  <div id="scResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>
  <section class="section"><div class="card"><div class="section-title"><h2>Equivalencias</h2><span>entre alimentos</span></div>

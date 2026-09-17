@@ -88,3 +88,34 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .v7remain,.v7remaining{margin-top:12px;padding:12px 14px;border-radius:14px;background:#0a1423;line-height:1.45}
 .v7note{margin:10px 0 12px;color:var(--muted,#94a3b8);line-height:1.45}
 @media(max-width:560px){.v7head{align-items:flex-start;flex-direction:column}.v7head select{width:100%}.v7row,.v7target{padding:10px 11px}.v7row b,.v7target b{font-size:14px}}
+
+
+/* V7.3 - barra fija compacta de objetivos */
+.v73sticky{
+ position:sticky;
+ top:0;
+ z-index:60;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:6px;
+ margin:0 0 14px;
+ padding:9px 10px;
+ border:1px solid rgba(148,163,184,.22);
+ border-radius:14px;
+ background:rgba(7,17,31,.96);
+ backdrop-filter:blur(12px);
+ -webkit-backdrop-filter:blur(12px);
+ box-shadow:0 8px 22px rgba(0,0,0,.24);
+ font-size:12px;
+ font-weight:850;
+ white-space:nowrap;
+}
+.v73sticky span{padding:5px 6px;border-radius:9px}
+.v73sticky .ok{color:#86efac;background:rgba(34,197,94,.12)}
+.v73sticky .warn{color:#fcd34d;background:rgba(245,158,11,.12)}
+.v73sticky .bad{color:#fca5a5;background:rgba(239,68,68,.12)}
+@media(max-width:390px){
+ .v73sticky{gap:3px;padding:8px 6px;font-size:10.5px}
+ .v73sticky span{padding:4px}
+}
