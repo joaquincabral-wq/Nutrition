@@ -101,7 +101,23 @@ const SMART_FOODS=[
 ];
 
 function customFoods(){return load('customFoodsV8',[]);}
-function allFoodCatalog(){return [...SMART_FOODS,...customFoods()];}
+function classifyFood(name,kcal,p,c,f){
+ const n=String(name||'').toLowerCase();
+ if(/fruta|fresa|arándan|arandan|melocot|sandía|sandia|plátano|platano|ciruela|melón|melon|naranja|manzana|pera|kiwi|framb|mora/.test(n))return'fruta';
+ if(/lechuga|tomate|pepino|espárr|esparr|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria|brócoli|brocoli|coliflor|calabac|berenjena|verdura/.test(n))return'verdura';
+ if(/yogur|queso|kéfir|kefir|leche|lácteo|lacteo|almendra/.test(n))return'lacteo';
+ if(f>=45&&c<20&&p<20)return'grasa';
+ if(p>=18&&p>=c*.8)return'proteina';
+ if(c>=30&&c>=p*1.5)return'hidrato';
+ if(kcal<=70&&c>=5&&f<5)return'fruta';
+ return'mixto';
+}
+function normalizedCustomFood(x){
+ const ref=Number(x.refQty)||100, factor=100/ref;
+ if(x.normalized!==false && !x.refQty)return {...x,refQty:100,refUnit:x.unit||'g'};
+ return {...x,kcal:Number(x.labelKcal??x.kcal)*factor,p:Number(x.labelP??x.p)*factor,c:Number(x.labelC??x.c)*factor,f:Number(x.labelF??x.f)*factor,unit:x.refUnit||x.unit||'g'};
+}
+function allFoodCatalog(){return [...SMART_FOODS,...customFoods().map(normalizedCustomFood)];}
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
  const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
@@ -247,10 +263,13 @@ function consumedTotals(day,date){
 function pct(v,t){return t?Math.min(100,v/t*100):0}
 function setPage(title){document.getElementById('pageTitle').textContent=title;document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view))}
 function macroBlock(day,date){
- const target=dayTotals(day,date),cons=consumedTotals(day,date);
- return `<section class="section"><div class="section-title"><h2>Macros del día</h2><span>estimación</span></div><div class="card">
-  <div class="kpi-grid"><div class="kpi"><b>${money(target.kcal)}</b><span>kcal plan</span></div><div class="kpi"><b>${money(cons.kcal)}</b><span>kcal consumidas</span></div><div class="kpi"><b>${money(Math.max(0,target.kcal-cons.kcal))}</b><span>kcal restantes</span></div></div>
-  ${bar('Proteína',cons.p,target.p,'g')}${bar('Hidratos',cons.c,target.c,'g')}${bar('Grasas',cons.f,target.f,'g')}
+ const type=v7Type(day,date),goal=v7Targets()[type],cons=consumedTotals(day,date);
+ const left=k=>Math.max(0,goal[k]-cons[k]);
+ return `<section class="section"><div class="section-title"><h2>Consumido hasta ahora</h2><span>comidas marcadas ✓</span></div><div class="card">
+  <div class="kpi-grid"><div class="kpi"><b>${money(cons.kcal)}</b><span>kcal consumidas</span></div><div class="kpi"><b>${money(left('kcal'))}</b><span>kcal pendientes</span></div><div class="kpi"><b>${money(goal.kcal)}</b><span>objetivo</span></div></div>
+  <div class="v7remain"><b>Consumido:</b><br>${Math.round(cons.kcal)} kcal · ${Math.round(cons.p)} P · ${Math.round(cons.c)} HC · ${Math.round(cons.f)} G</div>
+  <div class="v7remain"><b>Pendiente según objetivo:</b><br>${Math.round(left('kcal'))} kcal · ${Math.round(left('p'))} P · ${Math.round(left('c'))} HC · ${Math.round(left('f'))} G</div>
+  <p class="note">Lo pendiente es margen respecto al objetivo, no una obligación de consumirlo íntegramente.</p>
  </div></section>`;
 }
 function bar(label,v,t,u){return `<div class="macro-row"><div class="macro-head"><span>${label}</span><strong>${Math.round(v)} / ${Math.round(t)} ${u}</strong></div><div class="track"><i style="width:${pct(v,t)}%"></i></div></div>`}
@@ -405,15 +424,16 @@ function v7DefaultType(day){return ['lunes','martes','miércoles','jueves','vier
 function v7Type(day,date){return load('v7DayTypes',{})[date]||v7DefaultType(day);}
 function v7Status(v,t,k){if(!t)return'warn';const r=v/t;if(k==='kcal'){if(r>=.95&&r<=1.05)return'ok';if(r>=.90&&r<=1.10)return'warn';return'bad';}if(k==='p'){if(v>=t-10&&v<=t+25)return'ok';if(v>=t-25&&v<=t+40)return'warn';return'bad';}if(k==='c'||k==='f'){if(r>=.90&&r<=1.10)return'ok';if(r>=.80&&r<=1.20)return'warn';return'bad';}return'ok';}
 function v7ObjectivePanel(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date),cons=consumedTotals(day,date);
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);
  const row=(n,k,u)=>`<div class="v7row ${v7Status(plan[k],t[k],k)}"><span>${n}</span><b>${Math.round(plan[k])} / ${t[k]} ${u}</b></div>`;
- const left=k=>Math.max(0,Math.round(t[k]-cons[k]));
- return `<section class="section"><div class="section-title"><h2>Objetivos del día</h2><span>${type==='training'?'entrenamiento':'descanso'}</span></div><div class="card v7panel">
+ const states=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
+ const overall=states.includes('bad')?'bad':states.includes('warn')?'warn':'ok';
+ const msg=overall==='ok'?'Plan del día dentro del objetivo':overall==='warn'?'Plan con desviación moderada':'Revisa el plan del día';
+ return `<section class="section"><div class="section-title"><h2>Plan del día</h2><span>${type==='training'?'entrenamiento':'descanso'}</span></div><div class="card v7panel">
  <label class="field"><span>Tipo de día</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Día de entrenamiento</option><option value="rest"${type==='rest'?' selected':''}>Día de descanso</option></select></label>
- <p class="note">Plan actual frente al objetivo. Verde = dentro de un margen práctico; ámbar = desviación moderada; rojo = desviación relevante.</p>
+ <p class="note">Estos colores valoran el plan completo, no lo que llevas comido. Verde = dentro del margen; amarillo = desviación moderada; rojo = desviación relevante.</p>
  ${row('Calorías','kcal','kcal')}${row('Proteína','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
- <div class="v7remain"><b>Según lo ya marcado, te quedan:</b><br>${left('kcal')} kcal · ${left('p')} P · ${left('c')} HC · ${left('f')} G</div>
- <p class="note">Proteína: interesa aproximarse al objetivo. Calorías, hidratos y grasas disponibles son margen, no una obligación de comerlos.</p>
+ <div class="v81summary ${overall}"><strong>${msg}</strong></div>
  <button id="v7EditTargets" class="secondary" type="button">Editar objetivos</button></div></section>`;
 }
 function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
@@ -467,27 +487,28 @@ function renderProgress(){
 }
 function renderFoods(){
  const items=customFoods();
- document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">ALIMENTOS</div><h2>Mi base de datos</h2><p>Añade productos desde su etiqueta nutricional. Quedarán disponibles en Cambiar y Añadir alimento.</p></div></section>
- <section class="section"><div class="card"><div class="section-title"><h2>Nuevo alimento</h2><span>por 100 g / 100 ml</span></div>
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">ALIMENTOS</div><h2>Mi base de datos</h2><p>Copia los valores tal como aparecen en la etiqueta. La app normaliza los datos y clasifica el alimento automáticamente.</p></div></section>
+ <section class="section"><div class="card"><div class="section-title"><h2>Nuevo alimento</h2><span>según etiqueta</span></div>
  <label class="field"><span>Nombre</span><input id="cfName" class="input" placeholder="Ej. Yogur natural"></label>
- <div class="row"><label class="field"><span>Categoría</span><select id="cfCat" class="input"><option value="proteina">Proteína</option><option value="hidrato">Hidrato</option><option value="fruta">Fruta</option><option value="verdura">Verdura</option><option value="lacteo">Lácteo</option><option value="grasa">Grasa</option><option value="otro">Otro</option></select></label><label class="field"><span>Referencia</span><select id="cfUnit" class="input"><option value="g">100 g</option><option value="ml">100 ml</option></select></label></div>
+ <div class="row"><label class="field"><span>Cantidad de referencia</span><input id="cfRefQty" class="input" type="number" step="0.1" value="100"></label><label class="field"><span>Unidad</span><select id="cfUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label></div>
+ <p class="note">Ej.: si la etiqueta indica valores por 50 g, escribe 50 g. Si los indica por 250 ml, escribe 250 ml.</p>
  <div class="row"><label class="field"><span>kcal</span><input id="cfKcal" class="input" type="number" step="0.1"></label><label class="field"><span>Proteína g</span><input id="cfP" class="input" type="number" step="0.1"></label></div>
  <div class="row"><label class="field"><span>Hidratos g</span><input id="cfC" class="input" type="number" step="0.1"></label><label class="field"><span>Grasas g</span><input id="cfF" class="input" type="number" step="0.1"></label></div>
  <input id="cfEdit" type="hidden"><button id="cfSave" class="primary" style="width:100%">Guardar alimento</button></div></section>
- <section class="section"><div class="section-title"><h2>Mis alimentos</h2><span>${items.length}</span></div><div class="card">${items.length?items.map((x,i)=>`<div class="food"><div><strong>${x.name}</strong><small>${x.kcal} kcal · P ${x.p} · HC ${x.c} · G ${x.f} / 100 ${x.unit||'g'}</small></div><div class="food-actions"><button class="tiny" data-cfedit="${i}">Editar</button><button class="tiny danger" data-cfdel="${i}">Eliminar</button></div></div>`).join(''):'<p class="note">Aún no has añadido alimentos personalizados.</p>'}</div></section>`;
- document.getElementById('cfSave').onclick=()=>{const name=cfName.value.trim(), vals=[cfKcal,cfP,cfC,cfF].map(e=>Number(e.value));if(!name||vals.some(v=>!Number.isFinite(v)||v<0)){alert('Completa nombre, kcal y macros con valores válidos.');return;}const a=customFoods(),obj={name,cat:cfCat.value,kcal:vals[0],p:vals[1],c:vals[2],f:vals[3],unit:cfUnit.value};const ix=cfEdit.value===''?-1:Number(cfEdit.value);if(ix>=0)a[ix]=obj;else a.push(obj);save('customFoodsV8',a);render();};
- document.querySelectorAll('[data-cfedit]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfedit),x=customFoods()[i];cfName.value=x.name;cfCat.value=x.cat;cfUnit.value=x.unit||'g';cfKcal.value=x.kcal;cfP.value=x.p;cfC.value=x.c;cfF.value=x.f;cfEdit.value=i;window.scrollTo({top:0,behavior:'smooth'});});
+ <section class="section"><div class="section-title"><h2>Mis alimentos</h2><span>${items.length}</span></div><div class="card">${items.length?items.map((x,i)=>{const q=Number(x.refQty)||100,u=x.refUnit||x.unit||'g',lk=x.labelKcal??x.kcal,lp=x.labelP??x.p,lc=x.labelC??x.c,lf=x.labelF??x.f,n=normalizedCustomFood(x);return `<div class="food"><div><strong>${x.name}</strong><small>${lk} kcal · P ${lp} · HC ${lc} · G ${lf} / ${q} ${u}</small><small>Clasificación automática: ${n.cat||classifyFood(n.name,n.kcal,n.p,n.c,n.f)}</small></div><div class="food-actions"><button class="tiny" data-cfedit="${i}">Editar</button><button class="tiny danger" data-cfdel="${i}">Eliminar</button></div></div>`}).join(''):'<p class="note">Aún no has añadido alimentos personalizados.</p>'}</div></section>`;
+ document.getElementById('cfSave').onclick=()=>{const name=cfName.value.trim(),refQty=Number(cfRefQty.value),vals=[cfKcal,cfP,cfC,cfF].map(e=>Number(e.value));if(!name||!Number.isFinite(refQty)||refQty<=0||vals.some(v=>!Number.isFinite(v)||v<0)){alert('Completa nombre, referencia, kcal y macros con valores válidos.');return;}const factor=100/refQty,cat=classifyFood(name,vals[0]*factor,vals[1]*factor,vals[2]*factor,vals[3]*factor);const a=customFoods(),obj={name,cat,refQty,refUnit:cfUnit.value,labelKcal:vals[0],labelP:vals[1],labelC:vals[2],labelF:vals[3],kcal:vals[0]*factor,p:vals[1]*factor,c:vals[2]*factor,f:vals[3]*factor,unit:cfUnit.value,normalized:true};const ix=cfEdit.value===''?-1:Number(cfEdit.value);if(ix>=0)a[ix]=obj;else a.push(obj);save('customFoodsV8',a);render();};
+ document.querySelectorAll('[data-cfedit]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfedit),x=customFoods()[i];cfName.value=x.name;cfRefQty.value=Number(x.refQty)||100;cfUnit.value=x.refUnit||x.unit||'g';cfKcal.value=x.labelKcal??x.kcal;cfP.value=x.labelP??x.p;cfC.value=x.labelC??x.c;cfF.value=x.labelF??x.f;cfEdit.value=i;window.scrollTo({top:0,behavior:'smooth'});});
  document.querySelectorAll('[data-cfdel]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfdel),a=customFoods();if(confirm(`¿Eliminar ${a[i].name}?`)){a.splice(i,1);save('customFoodsV8',a);render();}});
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V8</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V8.1</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
 }
 function exportBackup(){
  const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
- const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'8',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'8.1',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  backupStatus.textContent='Backup exportado.';
 }
@@ -528,6 +549,11 @@ const SCALE_FOODS = [
 function scaleOptions(selected=''){
   return SCALE_FOODS.map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');
 }
+function equivalenceFoods(){
+ const base=[...SCALE_FOODS,{name:'Copos de avena',kcal:389,p:16.9,c:66.3,f:6.9,unit:'g'},{name:'Crema de arroz ProCao',kcal:352,p:8.8,c:74,f:1.5,unit:'g'}];
+ const seen=new Set();return [...base,...customFoods().map(normalizedCustomFood)].filter(x=>{const k=x.name.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});
+}
+function eqOptions(selected=''){return equivalenceFoods().map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');}
 function convertRawCooked(){
   const food=SCALE_FOODS.find(f=>f.name===document.getElementById('scFood').value);
   const qty=parseFloat(document.getElementById('scQty').value);
@@ -560,8 +586,9 @@ function convertRawCooked(){
   out.innerHTML=`<strong>${Math.round(result)} g</strong><br><span class="note">${note}</span>`;
 }
 function equivalentAmount(){
-  const a=SCALE_FOODS.find(f=>f.name===document.getElementById('eqA').value);
-  const b=SCALE_FOODS.find(f=>f.name===document.getElementById('eqB').value);
+  const foods=equivalenceFoods();
+  const a=foods.find(f=>f.name===document.getElementById('eqA').value);
+  const b=foods.find(f=>f.name===document.getElementById('eqB').value);
   const qty=parseFloat(document.getElementById('eqQty').value);
   const criterion=document.getElementById('eqCriterion').value;
   const out=document.getElementById('eqResult');
@@ -572,7 +599,7 @@ function equivalentAmount(){
   else {va=a.kcal;vb=b.kcal;label='calorías';}
   if(!vb){out.textContent=`${b.name} no es adecuado para equivalencia por ${label}.`;return;}
   const target=qty*(va/vb);
-  out.innerHTML=`<strong>${Math.round(target)} g de ${b.name}</strong><br><span class="note">Equivalencia aproximada por ${label}.</span>`;
+  out.innerHTML=`<strong>${Math.round(target)} ${b.unit||'g'} de ${b.name}</strong><br><span class="note">Equivalencia aproximada por ${label}.</span>`;
 }
 
 function fruitFoods(){return allFoodCatalog().filter(x=>x.cat==='fruta');}
@@ -604,9 +631,9 @@ function renderScale(){
  <button id="scCalc" class="primary" style="width:100%">Calcular</button>
  <div id="scResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>
  <section class="section"><div class="card"><div class="section-title"><h2>Equivalencias</h2><span>entre alimentos</span></div>
- <div class="row"><label class="field"><span>Alimento A</span><select id="eqA" class="input">${scaleOptions('Arroz')}</select></label>
- <label class="field"><span>Gramos A</span><input id="eqQty" class="input" type="number" value="75"></label></div>
- <div class="row"><label class="field"><span>Alimento B</span><select id="eqB" class="input">${scaleOptions('Patata')}</select></label>
+ <div class="row"><label class="field"><span>Alimento A</span><select id="eqA" class="input">${eqOptions('Arroz')}</select></label>
+ <label class="field"><span>Cantidad A</span><input id="eqQty" class="input" type="number" value="75"></label></div>
+ <div class="row"><label class="field"><span>Alimento B</span><select id="eqB" class="input">${eqOptions('Patata')}</select></label>
  <label class="field"><span>Criterio</span><select id="eqCriterion" class="input"><option value="calories">Calorías</option><option value="protein">Proteína</option><option value="carbs">Hidratos</option></select></label></div>
  <button id="eqCalc" class="primary" style="width:100%">Calcular equivalencia</button>
  <div id="eqResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>
