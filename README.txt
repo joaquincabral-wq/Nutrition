@@ -1,12 +1,12 @@
-JC Nutrition V7.3
+JC Nutrition V8
 
-Novedades:
-- Barra compacta fija de objetivos/macros en Hoy para verla al desplazarte por las comidas.
-- Mantiene los colores verde/ámbar/rojo.
-- Báscula: incorpora Congelado → descongelado y Descongelado → congelado.
-- Carne/pescado: usa una merma orientativa del 5% al descongelar.
-- Otros alimentos: aproximación 1:1 si no hay glaseado.
-- Se mantiene el aviso de que hielo, glaseado y pérdida de agua pueden alterar el peso real.
-- Mantiene el resto de funciones de V7.2.
-
-JavaScript validado con node --check.
+- Nueva pestaña Alimentos: crear, editar y eliminar alimentos personalizados con valores por 100 g/100 ml.
+- Los personalizados aparecen en Cambiar y Añadir y quedan incluidos automáticamente en Backup (localStorage).
+- Crema de arroz ProCao: 352 kcal, P 8.8, HC 74, G 1.5 /100 g.
+- Martes y jueves: 55 g ProCao sustituye 60 g avena en dieta base.
+- ProCao y avena disponibles para sustitución automática.
+- AOVE disponible en Cambiar/Añadir con cantidad editable.
+- Semáforo con tolerancias prácticas: kcal ±5%, HC/G ±10%, proteína 170-205 g para objetivo 180.
+- Mantiene cálculo de “te quedan” según comidas realmente marcadas.
+- Mantiene barra fija y conversor congelado/descongelado de V7.3.
+- Cache PWA actualizado.

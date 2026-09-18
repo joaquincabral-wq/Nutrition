@@ -119,3 +119,6 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
  .v73sticky{gap:3px;padding:8px 6px;font-size:10.5px}
  .v73sticky span{padding:4px}
 }
+
+/* V8 */
+.bottom-nav{grid-template-columns:repeat(7,minmax(72px,1fr));overflow-x:auto}.bottom-nav .nav{min-width:72px}.v7row.ok b{color:#86efac}.v7row.warn b{color:#fcd34d}.v7row.bad b{color:#fca5a5}
