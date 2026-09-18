@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='8.0';
+window.JC_NUTRITION_VERSION='8.2';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -418,45 +418,49 @@ function resetDayMenu(day,date){
  render();
 }
 
-const V7_DEFAULT_TARGETS={training:{kcal:2300,p:180,c:245,f:65},rest:{kcal:2100,p:180,c:175,f:75}};
-function v7Targets(){return load('v7Targets',JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)));}
+const V7_DEFAULT_TARGETS={training:{kcal:2300,p:180,c:245,f:65},cardio:{kcal:2200,p:180,c:210,f:70},rest:{kcal:2100,p:180,c:175,f:75}};
+function v7Targets(){const saved=load('v7Targets',{});return {...JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)),...saved};}
 function v7DefaultType(day){return ['lunes','martes','miércoles','jueves','viernes'].includes(String(day).toLowerCase())?'training':'rest';}
 function v7Type(day,date){return load('v7DayTypes',{})[date]||v7DefaultType(day);}
 function v7Status(v,t,k){if(!t)return'warn';const r=v/t;if(k==='kcal'){if(r>=.95&&r<=1.05)return'ok';if(r>=.90&&r<=1.10)return'warn';return'bad';}if(k==='p'){if(v>=t-10&&v<=t+25)return'ok';if(v>=t-25&&v<=t+40)return'warn';return'bad';}if(k==='c'||k==='f'){if(r>=.90&&r<=1.10)return'ok';if(r>=.80&&r<=1.20)return'warn';return'bad';}return'ok';}
+function v82Delta(v,t,k){const d=Math.round(v-t);return d===0?'=':`${d>0?'↑':'↓'}${Math.abs(d)}${k==='kcal'?'':' g'}`;}
+function v82Score(x,t){return Math.abs(x.kcal-t.kcal)/Math.max(100,t.kcal)*2+Math.abs(x.p-t.p)/Math.max(20,t.p)+Math.abs(x.c-t.c)/Math.max(20,t.c)+Math.abs(x.f-t.f)/Math.max(10,t.f)*1.2;}
+function v82Advice(day,date){
+ const t=v7Targets()[v7Type(day,date)],plan=dayTotals(day,date),done=load(`meals:${date}`,{}),meals=planForDay(day),before=v82Score(plan,t),cands=[];
+ meals.forEach((m,mi)=>{if(done[mi])return;m[1].forEach((orig,fi)=>{if(omitted(date,mi,fi))return;const text=currentText(date,mi,fi,orig),q=parseQty(text),fd=smartFoodFromText(text);if(!q||!fd)return;const steps=fd.cat==='grasa'?[5,10]:fd.cat==='hidrato'?[10,20,30,40,50]:fd.cat==='proteina'?[20,30,40,50]:[25,50,75];for(const delta of steps){for(const sign of [-1,1]){const nq=q+sign*delta;if(nq<=0||nq<q*.35)continue;const old=macros(text),neu={kcal:fd.kcal*nq/100,p:fd.p*nq/100,c:fd.c*nq/100,f:fd.f*nq/100},np={kcal:plan.kcal-old.kcal+neu.kcal,p:plan.p-old.p+neu.p,c:plan.c-old.c+neu.c,f:plan.f-old.f+neu.f};const score=v82Score(np,t);if(score<before*.88)cands.push({score,mi,fi,old:q,nq,fd,text,np,meal:m[0]});}}});});
+ cands.sort((a,b)=>a.score-b.score);const best=cands[0];
+ const states=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
+ if(states.every(x=>x==='ok'))return {html:'<strong>Consejo:</strong> No necesitas ajustar nada. El plan está suficientemente cerca de tus objetivos.',action:null};
+ if(!best)return {html:'<strong>Consejo:</strong> Hay alguna desviación, pero no veo un ajuste simple y útil en las comidas pendientes. Mejor no forzar cambios pequeños.',action:null};
+ const dir=best.nq>best.old?'sube':'baja';
+ return {html:`<strong>Ajuste recomendado:</strong> ${dir} ${best.fd.name} de ${Math.round(best.old)} a ${Math.round(best.nq)} g en ${best.meal}.`,action:best};
+}
+function v82ApplyAdvice(date,a){const d=load(`mealSubs:${date}`,{});d[`${a.mi}:${a.fi}`]={replacement:`${Math.round(a.nq)} g ${a.fd.name}`,mode:'advice'};save(`mealSubs:${date}`,d);render();}
 function v7ObjectivePanel(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);
- const row=(n,k,u)=>`<div class="v7row ${v7Status(plan[k],t[k],k)}"><span>${n}</span><b>${Math.round(plan[k])} / ${t[k]} ${u}</b></div>`;
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date),ad=v82Advice(day,date);
+ const row=(n,k,u)=>`<div class="v7row ${v7Status(plan[k],t[k],k)}"><span>${n}</span><b>${Math.round(plan[k])} / ${t[k]} ${u} <em>${v82Delta(plan[k],t[k],k)}</em></b></div>`;
  const states=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
  const overall=states.includes('bad')?'bad':states.includes('warn')?'warn':'ok';
- const msg=overall==='ok'?'Plan del día dentro del objetivo':overall==='warn'?'Plan con desviación moderada':'Revisa el plan del día';
- return `<section class="section"><div class="section-title"><h2>Plan del día</h2><span>${type==='training'?'entrenamiento':'descanso'}</span></div><div class="card v7panel">
- <label class="field"><span>Tipo de día</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Día de entrenamiento</option><option value="rest"${type==='rest'?' selected':''}>Día de descanso</option></select></label>
- <p class="note">Estos colores valoran el plan completo, no lo que llevas comido. Verde = dentro del margen; amarillo = desviación moderada; rojo = desviación relevante.</p>
+ const msg=overall==='ok'?'Plan bien ajustado':overall==='warn'?'Plan aceptable, con algún desvío':'Plan a revisar';
+ const label=type==='training'?'fuerza':type==='cardio'?'cardio/LISS':'descanso';
+ window.__v82Advice=ad.action;
+ return `<section class="section"><div class="section-title"><h2>Plan del día</h2><span>${label}</span></div><div class="card v7panel">
+ <label class="field"><span>Tipo de día</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Fuerza</option><option value="cardio"${type==='cardio'?' selected':''}>Cardio / LISS</option><option value="rest"${type==='rest'?' selected':''}>Descanso</option></select></label>
+ <p class="note">Color = importancia de la desviación. ↑/↓ = si estás por encima o por debajo del objetivo. Los colores valoran el plan completo, no lo que llevas comido.</p>
  ${row('Calorías','kcal','kcal')}${row('Proteína','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
  <div class="v81summary ${overall}"><strong>${msg}</strong></div>
+ <div class="v82advice">${ad.html}${ad.action?'<button id="v82Apply" class="primary" type="button">Aplicar ajuste</button>':''}</div>
  <button id="v7EditTargets" class="secondary" type="button">Editar objetivos</button></div></section>`;
 }
 function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
-
 function v73StickyBar(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);
- const cls=k=>v7Status(plan[k],t[k],k);
- return `<div class="v73sticky" id="v73Sticky">
-   <span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal}</span>
-   <span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p}</span>
-   <span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c}</span>
-   <span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f}</span>
- </div>`;
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);const cls=k=>v7Status(plan[k],t[k],k);
+ return `<div class="v73sticky" id="v73Sticky"><span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal} ${v82Delta(plan.kcal,t.kcal,'kcal')}</span><span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p} ${v82Delta(plan.p,t.p,'p')}</span><span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c} ${v82Delta(plan.c,t.c,'c')}</span><span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f} ${v82Delta(plan.f,t.f,'f')}</span></div>`;
 }
-
 function renderToday(){
- const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{});
- const ordered=plan.map((m,i)=>({m,i,done:!!done[i]})).sort((a,b)=>Number(a.done)-Number(b.done));
+ const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{});const ordered=plan.map((m,i)=>({m,i,done:!!done[i]})).sort((a,b)=>Number(a.done)-Number(b.done));
  document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
- bindMealActions(day,date);
- const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);
- const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};
- const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);
+ bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);
 }
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
