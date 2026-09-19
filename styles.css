@@ -139,3 +139,7 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .extras-frequent{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;align-items:center}
 .meal-free{border-color:rgba(245,158,11,.45)!important;background:rgba(245,158,11,.06)!important}
 .meal-free .meal-head strong{text-decoration:none;color:#fde68a}
+
+.rodilla-row{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(148,163,184,.12)}
+.rodilla-row span{font-weight:700}
+.rodilla-row .input{padding:10px;text-align:center}

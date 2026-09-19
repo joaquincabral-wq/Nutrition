@@ -117,7 +117,18 @@ function normalizedCustomFood(x){
  if(x.normalized!==false && !x.refQty)return {...x,refQty:100,refUnit:x.unit||'g'};
  return {...x,kcal:Number(x.labelKcal??x.kcal)*factor,p:Number(x.labelP??x.p)*factor,c:Number(x.labelC??x.c)*factor,f:Number(x.labelF??x.f)*factor,unit:x.refUnit||x.unit||'g'};
 }
-function allFoodCatalog(){return [...SMART_FOODS,...customFoods().map(normalizedCustomFood)];}
+
+const RODILLA_FOODS=[
+ {name:'Rodilla · Pollo curry',cat:'rodilla',unitKcal:155,unitP:7,unitC:15,unitF:7,estimate:true},
+ {name:'Rodilla · Pollo mostaza',cat:'rodilla',unitKcal:145,unitP:8,unitC:15,unitF:6,estimate:true},
+ {name:'Rodilla · Vegetal',cat:'rodilla',unitKcal:130,unitP:4,unitC:15,unitF:6,estimate:true},
+ {name:'Rodilla · Queso, nueces y Oporto',cat:'rodilla',unitKcal:170,unitP:5,unitC:15,unitF:10,estimate:true},
+ {name:'Rodilla · Queso azul y rúcula',cat:'rodilla',unitKcal:150,unitP:5,unitC:15,unitF:8,estimate:true},
+ {name:'Rodilla · Ahumados',cat:'rodilla',unitKcal:145,unitP:6,unitC:15,unitF:7,estimate:true},
+ {name:'Rodilla · Atún con tomate',cat:'rodilla',unitKcal:140,unitP:7,unitC:15,unitF:6,estimate:true}
+];
+
+function allFoodCatalog(){return [...RODILLA_FOODS,...SMART_FOODS,...customFoods().map(normalizedCustomFood)];}
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
  const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
@@ -191,6 +202,8 @@ function money(n){return Math.round(n)}
 function parseQty(text){
  const m=String(text).match(/([0-9]+(?:[.,][0-9]+)?)\s*(g|ml)/i);
  if(m)return +m[1].replace(',','.');
+ const un=String(text).match(/([0-9]+(?:[.,][0-9]+)?)\s*(unidad|unidades)/i);
+ if(un)return +un[1].replace(',','.');
  const u=String(text).match(/^([0-9]+)\s+huevos?/i);
  if(u)return +u[1]*60;
  return null;
@@ -204,8 +217,14 @@ function foodDef(text){
  return smart ? [smart.name,[smart.name.toLowerCase()],smart.kcal,smart.p,smart.c,smart.f] : null;
 }
 function macros(text){
- const def=foodDef(text),q=parseQty(text);
- if(!def||q==null)return {kcal:0,p:0,c:0,f:0,known:false};
+ const q=parseQty(text);
+ if(q==null)return {kcal:0,p:0,c:0,f:0,known:false};
+ const smart=smartFoodFromText(text);
+ if(smart&&smart.cat==='rodilla'){
+   return {kcal:smart.unitKcal*q,p:smart.unitP*q,c:smart.unitC*q,f:smart.unitF*q,known:true,estimated:true};
+ }
+ const def=foodDef(text);
+ if(!def)return {kcal:0,p:0,c:0,f:0,known:false};
  const factor=q/100;
  return {kcal:def[2]*factor,p:def[3]*factor,c:def[4]*factor,f:def[5]*factor,known:true};
 }
@@ -277,7 +296,7 @@ function renderExtrasBlock(day,date){
  return `<section class="section"><div class="section-title"><h2>Extras</h2><span>fuera del plan</span></div>
  <div class="card">
    <div class="extras-summary"><b>Plan: ${Math.round(pt.kcal)} kcal</b><span>Extras: +${Math.round(et.kcal)} kcal</span><strong>Total: ${Math.round(total.kcal)} kcal</strong></div>
-   ${extras.length?`<div class="food-list">${extras.map((x,i)=>{const m=macros(`${x.qty} ${x.unit||'g'} ${x.name}`);return `<div class="food"><div><strong>${x.qty} ${x.unit||'g'} ${x.name}</strong>${m.known?`<small>≈ ${Math.round(m.kcal)} kcal · P ${Math.round(m.p)} · HC ${Math.round(m.c)} · G ${Math.round(m.f)}</small>`:''}</div><button class="tiny danger" data-extra-remove="${i}">Quitar</button></div>`}).join('')}</div>`:'<p class="note">Sin extras registrados hoy.</p>'}
+   ${extras.length?`<div class="food-list">${extras.map((x,i)=>{const m=macros(`${x.qty} ${x.unit||'g'} ${x.name}`);return `<div class="food"><div><strong>${x.qty} ${x.unit||'g'} ${x.name}</strong>${m.known?`<small>≈ ${Math.round(m.kcal)} kcal · P ${Math.round(m.p)} · HC ${Math.round(m.c)} · G ${Math.round(m.f)}${m.estimated?' · estimado':''}</small>`:''}</div><button class="tiny danger" data-extra-remove="${i}">Quitar</button></div>`}).join('')}</div>`:'<p class="note">Sin extras registrados hoy.</p>'}
    <button class="primary" id="addExtraBtn" type="button" style="width:100%;margin-top:10px">+ Añadir extra</button>
    ${frequent.length?`<div class="extras-frequent"><small>Frecuentes:</small>${frequent.map(x=>`<button class="tiny" data-extra-frequent="${x.name}">${x.name}</button>`).join('')}</div>`:''}
  </div></section>`;
@@ -294,21 +313,64 @@ function openExtraModal(day,date,preset=''){
   <label class="field"><span>Alimento</span><select id="exFood" class="input">${foodOptions(catalog,selected)}</select></label>
   <div class="row">
    <label class="field"><span>Cantidad</span><input id="exQty" class="input" type="number" inputmode="decimal" value="100"></label>
-   <label class="field"><span>Unidad</span><select id="exUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label>
+   <label class="field"><span>Unidad</span><select id="exUnit" class="input"><option value="g">g</option><option value="ml">ml</option><option value="unidad">unidad</option></select></label>
   </div>
   <div id="exMacros" class="card" style="background:#0a1423"></div>
+  <button id="exRodillaMix" class="secondary" type="button" style="width:100%;margin:8px 0">🥪 Añadir surtido Rodilla</button>
   <div class="row"><button id="exSave" class="primary">Añadir</button><button id="exCancel" class="secondary">Cancelar</button></div>
  </div>`;
  document.body.appendChild(modal);
  const food=document.getElementById('exFood'),qty=document.getElementById('exQty'),unit=document.getElementById('exUnit'),box=document.getElementById('exMacros');
- function refresh(){const m=macros(`${Number(qty.value)||0} ${unit.value} ${food.value}`);box.innerHTML=m.known?`<strong>≈ ${Math.round(m.kcal)} kcal</strong><p class="note">P ${Math.round(m.p*10)/10} · HC ${Math.round(m.c*10)/10} · G ${Math.round(m.f*10)/10}</p>`:'<strong>Macros no disponibles</strong>';}
- food.onchange=refresh;qty.oninput=refresh;unit.onchange=refresh;refresh();
- document.getElementById('exClose').onclick=closeExtraModal;document.getElementById('exCancel').onclick=closeExtraModal;
+ function refresh(){
+   const selectedFood=allFoodCatalog().find(x=>x.name===food.value);
+   if(selectedFood?.cat==='rodilla'){
+     unit.value='unidad';
+     if(!qty.dataset.touched) qty.value='1';
+   }
+   const m=macros(`${Number(qty.value)||0} ${unit.value} ${food.value}`);
+   box.innerHTML=m.known?`<strong>≈ ${Math.round(m.kcal)} kcal${m.estimated?' · estimado':''}</strong><p class="note">P ${Math.round(m.p*10)/10} · HC ${Math.round(m.c*10)/10} · G ${Math.round(m.f*10)/10}${m.estimated?'<br>Valores orientativos por unidad; Rodilla no publica macros completos por sabor en la fuente oficial consultada.':''}</p>`:'<strong>Macros no disponibles</strong>';
+ }
+ food.onchange=()=>{qty.dataset.touched='';refresh();};qty.oninput=()=>{qty.dataset.touched='1';refresh();};unit.onchange=refresh;refresh();
+ document.getElementById('exClose').onclick=closeExtraModal;document.getElementById('exCancel').onclick=closeExtraModal;document.getElementById('exRodillaMix').onclick=()=>openRodillaMixModal(day,date);
  document.getElementById('exSave').onclick=()=>{
    const q=Number(qty.value);if(!food.value||!Number.isFinite(q)||q<=0){alert('Introduce una cantidad válida.');return;}
    const arr=dayExtras(date);arr.push({name:food.value,qty:q,unit:unit.value});save(`dayExtras:${date}`,arr);rememberExtra(food.value);closeExtraModal();render();
  };
 }
+
+function openRodillaMixModal(day,date){
+ closeExtraModal();
+ const modal=document.createElement('div');
+ modal.id='extra-modal';modal.className='modal';
+ modal.innerHTML=`<div class="sheet">
+   <div class="section-title"><h2>Surtido Rodilla</h2><button id="rxClose" class="tiny">Cerrar</button></div>
+   <p class="note">Indica cuántas unidades has tomado de cada sabor. Los valores son estimados.</p>
+   ${RODILLA_FOODS.map((x,i)=>`<div class="rodilla-row"><span>${x.name.replace('Rodilla · ','')}</span><input class="input rodillaQty" data-i="${i}" type="number" min="0" step="1" value="1"></div>`).join('')}
+   <div id="rxTotal" class="card" style="background:#0a1423;margin-top:12px"></div>
+   <div class="row"><button id="rxSave" class="primary">Añadir surtido</button><button id="rxCancel" class="secondary">Cancelar</button></div>
+ </div>`;
+ document.body.appendChild(modal);
+ const inputs=[...modal.querySelectorAll('.rodillaQty')],box=document.getElementById('rxTotal');
+ function recalc(){
+   let t={kcal:0,p:0,c:0,f:0},units=0;
+   inputs.forEach(inp=>{
+     const q=Number(inp.value)||0,f=RODILLA_FOODS[Number(inp.dataset.i)];
+     if(q>0){units+=q;t.kcal+=f.unitKcal*q;t.p+=f.unitP*q;t.c+=f.unitC*q;t.f+=f.unitF*q;}
+   });
+   box.innerHTML=`<strong>${units} unidades · ≈ ${Math.round(t.kcal)} kcal</strong><p class="note">P ${Math.round(t.p)} · HC ${Math.round(t.c)} · G ${Math.round(t.f)} · estimado</p>`;
+ }
+ inputs.forEach(x=>x.oninput=recalc);recalc();
+ document.getElementById('rxClose').onclick=closeExtraModal;document.getElementById('rxCancel').onclick=closeExtraModal;
+ document.getElementById('rxSave').onclick=()=>{
+   const arr=dayExtras(date);
+   inputs.forEach(inp=>{
+     const q=Number(inp.value)||0,f=RODILLA_FOODS[Number(inp.dataset.i)];
+     if(q>0){arr.push({name:f.name,qty:q,unit:'unidad'});rememberExtra(f.name);}
+   });
+   save(`dayExtras:${date}`,arr);closeExtraModal();render();
+ };
+}
+
 function toggleFreeMeal(date,mi){
  const f=freeMeals(date);
  if(f[mi]) delete f[mi]; else f[mi]=true;
