@@ -143,3 +143,10 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .rodilla-row{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(148,163,184,.12)}
 .rodilla-row span{font-weight:700}
 .rodilla-row .input{padding:10px;text-align:center}
+
+.v85-summary{display:flex;flex-direction:column;gap:7px}
+.v85-summary span{color:var(--muted,#94a3b8)}
+.v85-action{display:grid;grid-template-columns:110px minmax(0,1fr);gap:5px 10px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.12)}
+.v85-action:last-child{border-bottom:0}
+.v85-action strong{grid-column:2;color:#86efac}
+@media(max-width:520px){.v85-action{grid-template-columns:1fr}.v85-action strong{grid-column:1}}
