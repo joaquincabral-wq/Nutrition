@@ -132,3 +132,10 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .v7row b em{font-style:normal;font-size:11px;margin-left:6px;opacity:.9;white-space:nowrap}
 .v82advice{margin:12px 0;padding:13px 14px;border-radius:14px;background:#0a1423;border:1px solid rgba(148,163,184,.22);line-height:1.45}
 .v82advice .primary{width:100%;margin-top:10px}
+
+/* V8.3 - Extras y comidas libres */
+.extras-summary{display:grid;grid-template-columns:1fr;gap:5px;padding:10px 12px;border-radius:14px;background:#0a1423;margin-bottom:10px}
+.extras-summary span{color:#fcd34d}.extras-summary strong{color:#dbeafe}
+.extras-frequent{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.meal-free{border-color:rgba(245,158,11,.45)!important;background:rgba(245,158,11,.06)!important}
+.meal-free .meal-head strong{text-decoration:none;color:#fde68a}

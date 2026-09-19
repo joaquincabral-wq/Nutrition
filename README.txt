@@ -1,3 +1,11 @@
-JC Nutrition V8.2
-
-Novedades: tipo de día Fuerza/Cardio-LISS/Descanso; semáforo con flechas y magnitud de desviación; consejo inteligente basado en comidas pendientes; botón Aplicar ajuste; mantiene las mejoras de V8.1.
+JC Nutrition V8.3
+- Nueva zona Extras en Hoy.
+- Añadir extras desde la base de alimentos y ver sus macros.
+- Extras frecuentes.
+- Resumen Plan / Extras / Total.
+- Cada comida puede marcarse como COMIDA LIBRE; la comida prevista deja de computar.
+- Una comida libre no inventa calorías: se pueden registrar sus componentes como Extras si se desea.
+- Extras se suman a consumido y al total del día.
+- El consejo inteligente evita compensaciones agresivas cuando hay comida libre o extras importantes.
+- Mantiene V8.2.
+- JavaScript validado con node --check.
