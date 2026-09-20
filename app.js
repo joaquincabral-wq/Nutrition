@@ -40,7 +40,11 @@ const DB=[
  ['pescado',['pescado'],110,20,0,3],
  ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4],
  ['salvado_avena',['salvado de avena','salvado'],246,17.3,66.2,7.0],
- ['fresas',['fresas','fresa'],32,0.7,7.7,0.3]
+ ['fresas',['fresas','fresa'],32,0.7,7.7,0.3],
+ ['almendras',['almendras', 'almendra'],579,21.2,21.6,49.9],
+ ['nueces',['nueces', 'nuez'],654,15.2,13.7,65.2],
+ ['anacardos',['anacardos', 'anacardo'],553,18.2,30.2,43.8],
+ ['avellanas',['avellanas', 'avellana'],628,15.0,16.7,60.8]
 ];
 
 
@@ -97,7 +101,13 @@ const SMART_FOODS=[
  {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1},
  {name:'Fresas',cat:'fruta',kcal:32,p:0.7,c:7.7,f:0.3},
  {name:'AOVE',cat:'grasa',kcal:884,p:0,c:0,f:100},
- {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5}
+ {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5},
+ {name:'Pistachos',cat:'grasa',kcal:562,p:20.3,c:27.5,f:45.4},
+ {name:'Almendras',cat:'grasa',kcal:579,p:21.2,c:21.6,f:49.9},
+ {name:'Nueces',cat:'grasa',kcal:654,p:15.2,c:13.7,f:65.2},
+ {name:'Anacardos',cat:'grasa',kcal:553,p:18.2,c:30.2,f:43.8},
+ {name:'Avellanas',cat:'grasa',kcal:628,p:15.0,c:16.7,f:60.8},
+ {name:'Aguacate',cat:'grasa',kcal:160,p:2.0,c:8.5,f:14.7}
 ];
 
 function customFoods(){return load('customFoodsV8',[]);}
@@ -134,6 +144,13 @@ function smartFoodFromText(text){
  const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
  if(exact)return exact;
  const rules=[
+  ['Pistachos',['pistachos','pistacho']],
+  ['Almendras',['almendras','almendra']],
+  ['Nueces',['nueces','nuez']],
+  ['Anacardos',['anacardos','anacardo']],
+  ['Avellanas',['avellanas','avellana']],
+  ['AOVE',['aove','aceite de oliva']],
+  ['Aguacate',['aguacate']],
   ['Fresas',['fresas','fresa']],
   ['Bebida de almendras sin azúcar',['bebida de almendras','almendras sin azúcar']],
   ['Tomate cherry',['tomate cherry','cherry']],
@@ -185,6 +202,7 @@ function equivalentQty(originalText,target){
  else if(src.cat==='fruta'&&target.cat==='fruta') q=qty*(src.c/target.c);
  else if(src.cat==='verdura'&&target.cat==='verdura') q=qty;
  else if(src.cat==='lacteo'&&target.cat==='lacteo') q=qty*(src.kcal/target.kcal);
+ else if(src.cat==='grasa'&&target.cat==='grasa') q=qty*(src.kcal/target.kcal);
  else q=qty*(src.kcal/target.kcal);
  return Math.max(5,Math.round(q/5)*5);
 }
@@ -401,13 +419,11 @@ function v85ReplaceQty(text,newQty){
  if(!m)return text;
  return String(text).replace(m[0],`${Math.max(0,Math.round(newQty))} ${m[2]}`);
 }
-function v85Proposal(day,date){
+
+function v87CurrentState(day,date){
  const goal=v7Targets()[v7Type(day,date)];
  const done=load(`meals:${date}`,{}),free=freeMeals(date),skipped=skippedMeals(date),plan=planForDay(day);
- let projected=dayTotals(day,date);
- const before={...projected},actions=[];
- let delta=projected.kcal-goal.kcal;
-
+ const projected=dayTotals(day,date);
  const items=[];
  plan.forEach((meal,mi)=>{
    if(done[mi]||free[mi]||skipped[mi])return;
@@ -418,107 +434,188 @@ function v85Proposal(day,date){
      items.push({meal:meal[0],mi,fi,text,m,q,kind});
    });
  });
-
- function addOmit(it){
-   actions.push({type:'omit',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:'Omitir'});
-   projected={kcal:projected.kcal-it.m.kcal,p:projected.p-it.m.p,c:projected.c-it.m.c,f:projected.f-it.m.f};
-   delta=projected.kcal-goal.kcal;
- }
- function addReplace(it,newQ){
-   const ratio=newQ/it.q,nm={kcal:it.m.kcal*ratio,p:it.m.p*ratio,c:it.m.c*ratio,f:it.m.f*ratio};
-   actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,newQ)});
-   projected={kcal:projected.kcal-it.m.kcal+nm.kcal,p:projected.p-it.m.p+nm.p,c:projected.c-it.m.c+nm.c,f:projected.f-it.m.f+nm.f};
-   delta=projected.kcal-goal.kcal;
- }
-
- const tolerance=Math.max(60,goal.kcal*.035);
-
- if(delta>tolerance){
-   const priority={fat:1,carb:2,fruit:3,protein:4};
-   items.sort((a,b)=>priority[a.kind]-priority[b.kind]||b.m.kcal-a.m.kcal);
-
-   for(const it of items.filter(x=>x.kind==='fat')){
-     if(delta<=tolerance)break;addOmit(it);
-   }
-   for(const it of items.filter(x=>x.kind==='carb')){
-     if(delta<=tolerance)break;
-     const kpu=it.m.kcal/it.q,cut=Math.min(it.q*.75,Math.max(0,delta-tolerance)/Math.max(.01,kpu));
-     const nq=Math.max(it.q*.25,it.q-cut);if(nq<it.q-4)addReplace(it,nq);
-   }
-   for(const it of items.filter(x=>x.kind==='fruit')){
-     if(delta<=tolerance)break;
-     const kpu=it.m.kcal/it.q,cut=Math.min(it.q*.5,Math.max(0,delta-tolerance)/Math.max(.01,kpu));
-     const nq=Math.max(it.q*.5,it.q-cut);if(nq<it.q-4)addReplace(it,nq);
-   }
-   for(const it of items.filter(x=>x.kind==='protein')){
-     if(delta<=tolerance)break;
-     const allowedP=Math.max(0,projected.p-(goal.p-10));if(allowedP<=0||it.m.p<=0)continue;
-     const maxFraction=Math.min(.5,allowedP/it.m.p),maxCutQ=it.q*maxFraction,kpu=it.m.kcal/it.q;
-     const cut=Math.min(maxCutQ,Math.max(0,delta-tolerance)/Math.max(.01,kpu));
-     const nq=it.q-cut;if(nq<it.q-4)addReplace(it,nq);
-   }
- } else if(delta < -tolerance){
-   // If later you skip a meal, the engine may increase remaining foods again.
-   const need=()=>Math.max(0,goal.kcal-projected.kcal-tolerance);
-   const ordered=[
-     ...items.filter(x=>x.kind==='protein' && projected.p<goal.p-10),
-     ...items.filter(x=>x.kind==='carb'),
-     ...items.filter(x=>x.kind==='protein'),
-     ...items.filter(x=>x.kind==='fruit'),
-     ...items.filter(x=>x.kind==='fat')
-   ];
-   const used=new Set();
-   for(const it of ordered){
-     const key=`${it.mi}:${it.fi}`;if(used.has(key)||need()<=0)continue;used.add(key);
-     const kpu=it.m.kcal/it.q;if(kpu<=0)continue;
-     let maxIncrease=it.q*(it.kind==='fat'?.5:it.kind==='fruit'?.5:it.kind==='protein'?.6:.75);
-     const addQ=Math.min(maxIncrease,need()/kpu);
-     if(addQ>=5)addReplace(it,it.q+addQ);
-   }
- }
-
- const remaining=Math.round(projected.kcal-goal.kcal);
- let message;
- if(Math.abs(remaining)<=tolerance) message='La propuesta deja el resto del día razonablemente ajustado al objetivo actual.';
- else if(remaining>0) message=`Aun con un reajuste prudente quedarías unas ${remaining} kcal por encima. No recomiendo recortar más de forma agresiva.`;
- else message=`Aun con el reajuste quedarías unas ${Math.abs(remaining)} kcal por debajo. No es necesario forzar comida si no tienes hambre.`;
-
- if(!actions.length) message='Con el estado actual del día no veo un cambio útil que merezca la pena aplicar.';
- return {goal,before,after:projected,actions,message};
+ return {goal,projected,items};
 }
+function v87Clone(x){return JSON.parse(JSON.stringify(x));}
+function v87ApplyToProjection(proj,it,newQ){
+ const ratio=newQ/it.q,nm={kcal:it.m.kcal*ratio,p:it.m.p*ratio,c:it.m.c*ratio,f:it.m.f*ratio};
+ return {kcal:proj.kcal-it.m.kcal+nm.kcal,p:proj.p-it.m.p+nm.p,c:proj.c-it.m.c+nm.c,f:proj.f-it.m.f+nm.f};
+}
+function v87ProposalScore(x,t){
+ return Math.abs(x.kcal-t.kcal)/Math.max(100,t.kcal)*2
+  +Math.abs(x.p-t.p)/Math.max(20,t.p)
+  +Math.abs(x.c-t.c)/Math.max(20,t.c)
+  +Math.abs(x.f-t.f)/Math.max(10,t.f)*1.2;
+}
+function v87BuildOptions(day,date){
+ const st=v87CurrentState(day,date),goal=st.goal,before=st.projected,items=st.items;
+ const tol=Math.max(60,goal.kcal*.035);
+ const options=[];
+
+ function mk(title,desc,actions,after){
+   options.push({title,desc,actions,after,score:v87ProposalScore(after,goal)});
+ }
+
+ // OPTION 1: minimal intervention, one change only.
+ {
+   const candidates=[];
+   for(const it of items){
+     const unitKcal=it.m.kcal/it.q;
+     if(unitKcal<=0)continue;
+     const delta=before.kcal-goal.kcal;
+     if(Math.abs(delta)<=tol) continue;
+     if(delta>0){
+       const stepMap={fat:5,carb:10,fruit:25,protein:25};
+       const step=stepMap[it.kind]||10;
+       const targetCut=Math.min(it.q*.5, Math.max(step, Math.round((delta/unitKcal)/step)*step));
+       const nq=Math.max(it.q*.5,it.q-targetCut);
+       if(nq<it.q-1){
+         const after=v87ApplyToProjection(before,it,nq);
+         candidates.push({after,actions:[{type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)}],score:v87ProposalScore(after,goal)});
+       }
+     }else{
+       const stepMap={fat:5,carb:10,fruit:25,protein:25};
+       const step=stepMap[it.kind]||10;
+       const need=-delta;
+       const inc=Math.max(step,Math.round((need/unitKcal)/step)*step);
+       const maxFactor=it.kind==='fat'?1.5:it.kind==='fruit'?1.5:1.75;
+       const nq=Math.min(it.q*maxFactor,it.q+inc);
+       if(nq>it.q+1){
+         const after=v87ApplyToProjection(before,it,nq);
+         candidates.push({after,actions:[{type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)}],score:v87ProposalScore(after,goal)});
+       }
+     }
+   }
+   candidates.sort((a,b)=>a.score-b.score);
+   if(candidates[0]) mk('Opción 1 · Cambio mínimo','Toca una sola cantidad.',candidates[0].actions,candidates[0].after);
+ }
+
+ // OPTION 2: distribute between at most two foods.
+ {
+   const sorted=[...items].sort((a,b)=>{
+     const pr={fat:1,carb:2,fruit:3,protein:4};
+     return pr[a.kind]-pr[b.kind] || b.m.kcal-a.m.kcal;
+   });
+   let proj={...before},actions=[];
+   for(const it of sorted){
+     if(actions.length>=2)break;
+     const delta=proj.kcal-goal.kcal;
+     if(Math.abs(delta)<=tol)break;
+     const unitKcal=it.m.kcal/it.q;if(unitKcal<=0)continue;
+     if(delta>0){
+       const fraction=Math.min(.35,Math.max(.08,(delta/Math.max(1,it.m.kcal))/2));
+       const nq=Math.max(it.q*.5,it.q*(1-fraction));
+       if(nq<it.q-1){
+         actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)});
+         proj=v87ApplyToProjection(proj,it,nq);
+       }
+     }else{
+       const need=-delta;
+       const addQ=Math.min(it.q*.35,need/unitKcal/2);
+       const nq=it.q+Math.max(0,addQ);
+       if(nq>it.q+1){
+         actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)});
+         proj=v87ApplyToProjection(proj,it,nq);
+       }
+     }
+   }
+   if(actions.length) mk('Opción 2 · Repartido','Reparte el ajuste entre dos alimentos.',actions,proj);
+ }
+
+ // OPTION 3: prioritize macro balance, especially protein.
+ {
+   let proj={...before},actions=[];
+   const proteinItems=items.filter(x=>x.kind==='protein');
+   const carbItems=items.filter(x=>x.kind==='carb');
+   const fatItems=items.filter(x=>x.kind==='fat');
+   const fruitItems=items.filter(x=>x.kind==='fruit');
+
+   // First address protein gap if meaningful.
+   if(proj.p<goal.p-10 && proteinItems.length){
+     const it=proteinItems[0],needP=goal.p-proj.p;
+     const addQ=Math.min(it.q*.5, needP/Math.max(.01,it.m.p/it.q));
+     if(addQ>4){
+       const nq=it.q+addQ;
+       actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)});
+       proj=v87ApplyToProjection(proj,it,nq);
+     }
+   }
+
+   let delta=proj.kcal-goal.kcal;
+   const pool=delta>0?[...fatItems,...carbItems,...fruitItems,...proteinItems]:[...carbItems,...proteinItems,...fruitItems,...fatItems];
+   for(const it of pool){
+     if(actions.length>=3)break;
+     delta=proj.kcal-goal.kcal;
+     if(Math.abs(delta)<=tol)break;
+     const unitKcal=it.m.kcal/it.q;if(unitKcal<=0)continue;
+     if(delta>0){
+       const maxCut=it.kind==='protein'?it.q*.25:it.q*.4;
+       const cut=Math.min(maxCut,delta/unitKcal);
+       const nq=it.q-cut;
+       if(nq>0 && nq<it.q-1){
+         actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)});
+         proj=v87ApplyToProjection(proj,it,nq);
+       }
+     }else{
+       const addQ=Math.min(it.q*.35,(-delta)/unitKcal);
+       const nq=it.q+addQ;
+       if(nq>it.q+1){
+         actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,nq)});
+         proj=v87ApplyToProjection(proj,it,nq);
+       }
+     }
+   }
+   if(actions.length) mk('Opción 3 · Mejor reparto de macros','Prioriza proteína y el equilibrio global.',actions,proj);
+ }
+
+ options.sort((a,b)=>a.score-b.score);
+ return {goal,before,options:options.slice(0,3)};
+}
+
+function v85Proposal(day,date){
+ const x=v87BuildOptions(day,date);
+ const best=x.options[0];
+ return best?{goal:x.goal,before:x.before,after:best.after,actions:best.actions,message:best.desc}:{goal:x.goal,before:x.before,after:x.before,actions:[],message:'No veo un ajuste útil que merezca la pena aplicar.'};
+}
+
 function closeV85Modal(){document.getElementById('v85-modal')?.remove();}
 function openRebalanceModal(day,date){
  closeV85Modal();
- const p=v85Proposal(day,date);
+ const pack=v87BuildOptions(day,date);
  const modal=document.createElement('div');modal.id='v85-modal';modal.className='modal';
- const list=p.actions.length?p.actions.map(a=>`<div class="v85-action"><b>${a.meal}</b><span>${a.from}</span><strong>→ ${a.to}</strong></div>`).join(''):'<p class="note">No hay ajustes necesarios.</p>';
+ const cards=pack.options.length?pack.options.map((o,idx)=>`
+   <div class="card v87-option">
+    <div class="section-title"><h3>${o.title}</h3><span>${Math.round(o.after.kcal)} kcal</span></div>
+    <p class="note">${o.desc}</p>
+    ${o.actions.map(a=>`<div class="v85-action"><b>${a.meal}</b><span>${a.from}</span><strong>→ ${a.to}</strong></div>`).join('')}
+    <div class="v87-result">Resultado: ${Math.round(o.after.kcal)} kcal · ${Math.round(o.after.p)} P · ${Math.round(o.after.c)} HC · ${Math.round(o.after.f)} G</div>
+    <button class="primary v87ApplyOption" data-opt="${idx}" style="width:100%;margin-top:10px">Aplicar esta opción</button>
+   </div>`).join(''):`<div class="card"><p class="note">No veo un ajuste útil que merezca la pena aplicar ahora mismo.</p></div>`;
  modal.innerHTML=`<div class="sheet">
-  <div class="section-title"><h2>Recalcular resto del día</h2><button id="v85Close" class="tiny">Cerrar</button></div>
-  <p class="note">Puedes recalcular tantas veces como quieras. Solo se modifican comidas pendientes; lo realizado y lo saltado quedan bloqueados.</p>
-  <div class="card v85-summary">
-   <b>Antes: ${Math.round(p.before.kcal)} kcal · ${Math.round(p.before.p)} P · ${Math.round(p.before.c)} HC · ${Math.round(p.before.f)} G</b>
-   <span>Objetivo: ${p.goal.kcal} kcal · ${p.goal.p} P · ${p.goal.c} HC · ${p.goal.f} G</span>
-   <strong>Propuesta: ${Math.round(p.after.kcal)} kcal · ${Math.round(p.after.p)} P · ${Math.round(p.after.c)} HC · ${Math.round(p.after.f)} G</strong>
-  </div>
-  <div class="card">${list}</div>
-  <p class="note">${p.message}</p>
-  <div class="row"><button id="v85Apply" class="primary" ${p.actions.length?'':'disabled'}>Aplicar reajuste</button><button id="v85Keep" class="secondary">Mantener menú</button></div>
+   <div class="section-title"><h2>Recalcular resto del día</h2><button id="v85Close" class="tiny">Cerrar</button></div>
+   <p class="note">Puedes recalcular tantas veces como quieras. Solo se modifican comidas pendientes; lo realizado y lo saltado quedan bloqueados.</p>
+   <div class="card v85-summary">
+    <b>Estado actual: ${Math.round(pack.before.kcal)} kcal · ${Math.round(pack.before.p)} P · ${Math.round(pack.before.c)} HC · ${Math.round(pack.before.f)} G</b>
+    <span>Objetivo: ${pack.goal.kcal} kcal · ${pack.goal.p} P · ${pack.goal.c} HC · ${pack.goal.f} G</span>
+   </div>
+   ${cards}
+   <button id="v85Keep" class="secondary" style="width:100%">Mantener menú</button>
  </div>`;
  document.body.appendChild(modal);
  document.getElementById('v85Close').onclick=closeV85Modal;
  document.getElementById('v85Keep').onclick=closeV85Modal;
- document.getElementById('v85Apply').onclick=()=>{
-   if(!p.actions.length)return;
-   if(!confirm('¿Aplicar estos cambios a las comidas pendientes de hoy?'))return;
+ document.querySelectorAll('.v87ApplyOption').forEach(btn=>btn.onclick=()=>{
+   const o=pack.options[Number(btn.dataset.opt)]; if(!o)return;
+   if(!confirm('¿Aplicar esta propuesta a las comidas pendientes?'))return;
    const subs=load(`mealSubs:${date}`,{}),om=load(`v6MealOmit:${date}`,{});
-   p.actions.forEach(a=>{
+   o.actions.forEach(a=>{
      const key=`${a.mi}:${a.fi}`;
      if(a.type==='omit')om[key]=true;
-     else subs[key]={replacement:a.to,mode:'extras-rebalance'};
+     else subs[key]={replacement:a.to,mode:'dynamic-rebalance'};
    });
    save(`mealSubs:${date}`,subs);save(`v6MealOmit:${date}`,om);
    closeV85Modal();render();
- };
+ });
 }
 
 function dayTotals(day,date){
@@ -629,7 +726,7 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
   d[`${mi}:${fi}`]={replacement:`${q} ${unit.value} ${food.value}`,mode:'fields'};
   save(`mealSubs:${date}`,d);
   closeFoodModal();
-  render();
+  render();setTimeout(()=>openRebalanceModal(day,date),90);setTimeout(()=>openRebalanceModal(day,date),90);
  };
 }
 function openFoodAddModal(day,date,mi){
@@ -680,11 +777,11 @@ function openFoodAddModal(day,date,mi){
 }
 
 function bindMealActions(day,date){
- document.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{const d=load(`meals:${date}`,{}),i=b.dataset.done;d[i]=!d[i];save(`meals:${date}`,d);render()});
- document.querySelectorAll('[data-omit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.omit.split(':'),k=`v6MealOmit:${date}`,d=load(k,{}),id=`${mi}:${fi}`;d[id]?delete d[id]:d[id]=true;save(k,d);render()});
+ document.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{const d=load(`meals:${date}`,{}),i=b.dataset.done;d[i]=!d[i];save(`meals:${date}`,d);render();setTimeout(()=>openRebalanceModal(day,date),90)});
+ document.querySelectorAll('[data-omit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.omit.split(':'),k=`v6MealOmit:${date}`,d=load(k,{}),id=`${mi}:${fi}`;d[id]?delete d[id]:d[id]=true;save(k,d);render();setTimeout(()=>openRebalanceModal(day,date),90)});
  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const [mi,fi]=b.dataset.edit.split(':').map(Number),plan=planForDay(day),orig=plan[mi][1][fi],cur=currentText(date,mi,fi,orig);openFoodChangeModal(day,date,mi,fi,cur)});
  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{openFoodAddModal(day,date,Number(b.dataset.add))});
- document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render()});
+ document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render();setTimeout(()=>openRebalanceModal(day,date),90)});
 
  document.querySelectorAll('[data-free-meal]').forEach(b=>b.onclick=()=>{toggleFreeMeal(date,Number(b.dataset.freeMeal));setTimeout(()=>openRebalanceModal(day,date),90);});
  document.querySelectorAll('[data-skip-meal]').forEach(b=>b.onclick=()=>{
@@ -753,7 +850,7 @@ function v73StickyBar(day,date){
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
  document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}${renderExtrasBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
- bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
+ bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();setTimeout(()=>openRebalanceModal(day,date),90);});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
 }
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];

@@ -1,21 +1,26 @@
-JC Nutrition V8.6 - Reajuste dinámico
+JC Nutrition V8.8 - Frutos secos y equivalencias de grasas
 
-Base: V8.5.
+Base: V8.7.
 
-Novedades:
-- Cada comida puede estar: Pendiente / Realizada / Saltada.
-- “Saltar comida” elimina esa comida del plan proyectado del día.
-- Al saltar o restaurar una comida se abre una nueva propuesta de reajuste.
-- “Recalcular resto del día” está siempre disponible y puede usarse ilimitadamente.
-- El motor trabaja siempre con el estado actual:
-  consumido real + Extras/comidas libres + comidas saltadas + comidas pendientes.
-- Si vas por encima del objetivo reduce solo comidas pendientes.
-- Si, por ejemplo, saltas la merienda y quedas por debajo, puede volver a aumentar cantidades de la cena pendiente.
-- Nunca modifica comidas ya realizadas ni comidas saltadas.
-- Prioridad al recortar: grasas añadidas -> hidratos densos -> fruta -> proteína.
-- Al aumentar: prioriza proteína si falta, después hidratos, y evita forzar comida de forma agresiva.
-- La propuesta siempre requiere confirmación antes de aplicarse.
-- Pendientes aparecen primero; saltadas después; realizadas al final.
+Añadido a Cambiar/Añadir:
+- Pistachos
+- Almendras
+- Nueces
+- Anacardos
+- Avellanas
+- AOVE
+- Aguacate
 
-Mantiene Rodilla y el resto de funciones de V8.5.
+Equivalencias:
+- Entre frutos secos y otras fuentes de grasa se usa como referencia principal la equivalencia calórica.
+- La app sigue mostrando kcal, proteína, hidratos y grasa de la sustitución.
+- Las cantidades siguen siendo editables antes de guardar.
+
+Mantiene todas las funciones de V8.7:
+- reajuste dinámico
+- hasta 3 alternativas
+- comidas pendientes/realizadas/saltadas
+- Extras/Rodilla
+- recalculo repetible
+
 JavaScript validado con node --check.
