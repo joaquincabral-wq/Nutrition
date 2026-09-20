@@ -263,6 +263,13 @@ function omitted(date,mi,fi){return !!load(`v6MealOmit:${date}`,{})[`${mi}:${fi}
 function addedFoods(date,mi){return load(`v10MealAdds:${date}`,{})[String(mi)]||[]}
 
 function freeMeals(date){return load(`freeMeals:${date}`,{});}
+function skippedMeals(date){return load(`skippedMeals:${date}`,{});}
+function toggleSkippedMeal(date,mi){
+ const x=skippedMeals(date);
+ if(x[mi]) delete x[mi]; else x[mi]=true;
+ save(`skippedMeals:${date}`,x);
+ render();
+}
 function dayExtras(date){return load(`dayExtras:${date}`,[]);}
 function extrasTotals(date){
  let total={kcal:0,p:0,c:0,f:0};
@@ -271,9 +278,9 @@ function extrasTotals(date){
 }
 function planOnlyTotals(day,date){
  let total={kcal:0,p:0,c:0,f:0};
- const plan=planForDay(day),free=freeMeals(date);
+ const plan=planForDay(day),free=freeMeals(date),skipped=skippedMeals(date);
  plan.forEach((m,mi)=>{
-   if(free[mi]) return;
+   if(free[mi]||skipped[mi]) return;
    m[1].forEach((f,fi)=>{if(!omitted(date,mi,fi))total=add(total,macros(currentText(date,mi,fi,f)))});
    addedFoods(date,mi).forEach(x=>total=add(total,macros(x)));
  });
@@ -298,7 +305,7 @@ function renderExtrasBlock(day,date){
    <div class="extras-summary"><b>Plan: ${Math.round(pt.kcal)} kcal</b><span>Extras: +${Math.round(et.kcal)} kcal</span><strong>Total: ${Math.round(total.kcal)} kcal</strong></div>
    ${extras.length?`<div class="food-list">${extras.map((x,i)=>{const m=macros(`${x.qty} ${x.unit||'g'} ${x.name}`);return `<div class="food"><div><strong>${x.qty} ${x.unit||'g'} ${x.name}</strong>${m.known?`<small>≈ ${Math.round(m.kcal)} kcal · P ${Math.round(m.p)} · HC ${Math.round(m.c)} · G ${Math.round(m.f)}${m.estimated?' · estimado':''}</small>`:''}</div><button class="tiny danger" data-extra-remove="${i}">Quitar</button></div>`}).join('')}</div>`:'<p class="note">Sin extras registrados hoy.</p>'}
    <button class="primary" id="addExtraBtn" type="button" style="width:100%;margin-top:10px">+ Añadir extra</button>
-   ${extras.length?`<button class="secondary" id="rebalanceExtrasBtn" type="button" style="width:100%;margin-top:8px">⚖ Reajustar resto del día</button>`:''}
+   <button class="secondary" id="rebalanceExtrasBtn" type="button" style="width:100%;margin-top:8px">⚖ Recalcular resto del día</button>
    ${frequent.length?`<div class="extras-frequent"><small>Frecuentes:</small>${frequent.map(x=>`<button class="tiny" data-extra-frequent="${x.name}">${x.name}</button>`).join('')}</div>`:''}
  </div></section>`;
 }
@@ -396,15 +403,14 @@ function v85ReplaceQty(text,newQty){
 }
 function v85Proposal(day,date){
  const goal=v7Targets()[v7Type(day,date)];
- const done=load(`meals:${date}`,{}),free=freeMeals(date),plan=planForDay(day);
+ const done=load(`meals:${date}`,{}),free=freeMeals(date),skipped=skippedMeals(date),plan=planForDay(day);
  let projected=dayTotals(day,date);
- const actions=[];
- let need=Math.max(0,projected.kcal-goal.kcal);
- if(need<=Math.max(50,goal.kcal*.03)) return {goal,before:projected,after:projected,actions:[],message:'El día ya está suficientemente cerca del objetivo. No hace falta reajustar.'};
+ const before={...projected},actions=[];
+ let delta=projected.kcal-goal.kcal;
 
  const items=[];
  plan.forEach((meal,mi)=>{
-   if(done[mi]||free[mi])return;
+   if(done[mi]||free[mi]||skipped[mi])return;
    meal[1].forEach((orig,fi)=>{
      if(omitted(date,mi,fi))return;
      const text=currentText(date,mi,fi,orig),m=macros(text),q=parseQty(text),kind=v85Kind(text);
@@ -413,65 +419,72 @@ function v85Proposal(day,date){
    });
  });
 
- const priority={fat:1,carb:2,fruit:3,protein:4};
- items.sort((a,b)=>priority[a.kind]-priority[b.kind] || b.m.kcal-a.m.kcal);
-
  function addOmit(it){
    actions.push({type:'omit',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:'Omitir'});
    projected={kcal:projected.kcal-it.m.kcal,p:projected.p-it.m.p,c:projected.c-it.m.c,f:projected.f-it.m.f};
-   need=Math.max(0,projected.kcal-goal.kcal);
+   delta=projected.kcal-goal.kcal;
  }
- function addReduce(it,newQ){
-   const ratio=newQ/it.q;
-   const nm={kcal:it.m.kcal*ratio,p:it.m.p*ratio,c:it.m.c*ratio,f:it.m.f*ratio};
+ function addReplace(it,newQ){
+   const ratio=newQ/it.q,nm={kcal:it.m.kcal*ratio,p:it.m.p*ratio,c:it.m.c*ratio,f:it.m.f*ratio};
    actions.push({type:'replace',mi:it.mi,fi:it.fi,meal:it.meal,from:it.text,to:v85ReplaceQty(it.text,newQ)});
    projected={kcal:projected.kcal-it.m.kcal+nm.kcal,p:projected.p-it.m.p+nm.p,c:projected.c-it.m.c+nm.c,f:projected.f-it.m.f+nm.f};
-   need=Math.max(0,projected.kcal-goal.kcal);
+   delta=projected.kcal-goal.kcal;
  }
 
- // 1. Remove discretionary fats first.
- for(const it of items.filter(x=>x.kind==='fat')){
-   if(need<=50)break;
-   addOmit(it);
+ const tolerance=Math.max(60,goal.kcal*.035);
+
+ if(delta>tolerance){
+   const priority={fat:1,carb:2,fruit:3,protein:4};
+   items.sort((a,b)=>priority[a.kind]-priority[b.kind]||b.m.kcal-a.m.kcal);
+
+   for(const it of items.filter(x=>x.kind==='fat')){
+     if(delta<=tolerance)break;addOmit(it);
+   }
+   for(const it of items.filter(x=>x.kind==='carb')){
+     if(delta<=tolerance)break;
+     const kpu=it.m.kcal/it.q,cut=Math.min(it.q*.75,Math.max(0,delta-tolerance)/Math.max(.01,kpu));
+     const nq=Math.max(it.q*.25,it.q-cut);if(nq<it.q-4)addReplace(it,nq);
+   }
+   for(const it of items.filter(x=>x.kind==='fruit')){
+     if(delta<=tolerance)break;
+     const kpu=it.m.kcal/it.q,cut=Math.min(it.q*.5,Math.max(0,delta-tolerance)/Math.max(.01,kpu));
+     const nq=Math.max(it.q*.5,it.q-cut);if(nq<it.q-4)addReplace(it,nq);
+   }
+   for(const it of items.filter(x=>x.kind==='protein')){
+     if(delta<=tolerance)break;
+     const allowedP=Math.max(0,projected.p-(goal.p-10));if(allowedP<=0||it.m.p<=0)continue;
+     const maxFraction=Math.min(.5,allowedP/it.m.p),maxCutQ=it.q*maxFraction,kpu=it.m.kcal/it.q;
+     const cut=Math.min(maxCutQ,Math.max(0,delta-tolerance)/Math.max(.01,kpu));
+     const nq=it.q-cut;if(nq<it.q-4)addReplace(it,nq);
+   }
+ } else if(delta < -tolerance){
+   // If later you skip a meal, the engine may increase remaining foods again.
+   const need=()=>Math.max(0,goal.kcal-projected.kcal-tolerance);
+   const ordered=[
+     ...items.filter(x=>x.kind==='protein' && projected.p<goal.p-10),
+     ...items.filter(x=>x.kind==='carb'),
+     ...items.filter(x=>x.kind==='protein'),
+     ...items.filter(x=>x.kind==='fruit'),
+     ...items.filter(x=>x.kind==='fat')
+   ];
+   const used=new Set();
+   for(const it of ordered){
+     const key=`${it.mi}:${it.fi}`;if(used.has(key)||need()<=0)continue;used.add(key);
+     const kpu=it.m.kcal/it.q;if(kpu<=0)continue;
+     let maxIncrease=it.q*(it.kind==='fat'?.5:it.kind==='fruit'?.5:it.kind==='protein'?.6:.75);
+     const addQ=Math.min(maxIncrease,need()/kpu);
+     if(addQ>=5)addReplace(it,it.q+addQ);
+   }
  }
 
- // 2. Reduce dense carbohydrates, preserving at least 25% of the portion.
- for(const it of items.filter(x=>x.kind==='carb')){
-   if(need<=50)break;
-   const kcalPerUnit=it.m.kcal/it.q;
-   const reducible=it.q*.75;
-   const cut=Math.min(reducible, need/Math.max(.01,kcalPerUnit));
-   const newQ=Math.max(it.q*.25,it.q-cut);
-   if(newQ<it.q-4)addReduce(it,newQ);
- }
+ const remaining=Math.round(projected.kcal-goal.kcal);
+ let message;
+ if(Math.abs(remaining)<=tolerance) message='La propuesta deja el resto del día razonablemente ajustado al objetivo actual.';
+ else if(remaining>0) message=`Aun con un reajuste prudente quedarías unas ${remaining} kcal por encima. No recomiendo recortar más de forma agresiva.`;
+ else message=`Aun con el reajuste quedarías unas ${Math.abs(remaining)} kcal por debajo. No es necesario forzar comida si no tienes hambre.`;
 
- // 3. Fruit only if still necessary; preserve at least half.
- for(const it of items.filter(x=>x.kind==='fruit')){
-   if(need<=50)break;
-   const kcalPerUnit=it.m.kcal/it.q;
-   const reducible=it.q*.5;
-   const cut=Math.min(reducible, need/Math.max(.01,kcalPerUnit));
-   const newQ=Math.max(it.q*.5,it.q-cut);
-   if(newQ<it.q-4)addReduce(it,newQ);
- }
-
- // 4. Protein is the last lever and should not push projected protein below target-10 g.
- for(const it of items.filter(x=>x.kind==='protein')){
-   if(need<=50)break;
-   const allowedP=Math.max(0,projected.p-(goal.p-10));
-   if(allowedP<=0||it.m.p<=0)continue;
-   const maxFraction=Math.min(.5,allowedP/it.m.p);
-   const maxCutQ=it.q*maxFraction;
-   const kcalPerUnit=it.m.kcal/it.q;
-   const cut=Math.min(maxCutQ,need/Math.max(.01,kcalPerUnit));
-   const newQ=it.q-cut;
-   if(newQ<it.q-4)addReduce(it,newQ);
- }
-
- const message=need>100
-   ? `Aun aplicando un reajuste prudente quedarías aproximadamente ${Math.round(need)} kcal por encima. No recomiendo recortar más de forma agresiva.`
-   : 'La propuesta deja el resto del día razonablemente ajustado sin tocar lo ya consumido.';
- return {goal,before:dayTotals(day,date),after:projected,actions,message};
+ if(!actions.length) message='Con el estado actual del día no veo un cambio útil que merezca la pena aplicar.';
+ return {goal,before,after:projected,actions,message};
 }
 function closeV85Modal(){document.getElementById('v85-modal')?.remove();}
 function openRebalanceModal(day,date){
@@ -480,8 +493,8 @@ function openRebalanceModal(day,date){
  const modal=document.createElement('div');modal.id='v85-modal';modal.className='modal';
  const list=p.actions.length?p.actions.map(a=>`<div class="v85-action"><b>${a.meal}</b><span>${a.from}</span><strong>→ ${a.to}</strong></div>`).join(''):'<p class="note">No hay ajustes necesarios.</p>';
  modal.innerHTML=`<div class="sheet">
-  <div class="section-title"><h2>Reajustar resto del día</h2><button id="v85Close" class="tiny">Cerrar</button></div>
-  <p class="note">Solo se modifican comidas pendientes. Nunca cambia alimentos de comidas ya marcadas como realizadas.</p>
+  <div class="section-title"><h2>Recalcular resto del día</h2><button id="v85Close" class="tiny">Cerrar</button></div>
+  <p class="note">Puedes recalcular tantas veces como quieras. Solo se modifican comidas pendientes; lo realizado y lo saltado quedan bloqueados.</p>
   <div class="card v85-summary">
    <b>Antes: ${Math.round(p.before.kcal)} kcal · ${Math.round(p.before.p)} P · ${Math.round(p.before.c)} HC · ${Math.round(p.before.f)} G</b>
    <span>Objetivo: ${p.goal.kcal} kcal · ${p.goal.p} P · ${p.goal.c} HC · ${p.goal.f} G</span>
@@ -513,9 +526,9 @@ function dayTotals(day,date){
 }
 function consumedTotals(day,date){
  let total={kcal:0,p:0,c:0,f:0};
- const done=load(`meals:${date}`,{}),plan=planForDay(day),free=freeMeals(date);
+ const done=load(`meals:${date}`,{}),plan=planForDay(day),free=freeMeals(date),skipped=skippedMeals(date);
  plan.forEach((m,mi)=>{
-  if(done[mi] && !free[mi]){
+  if(done[mi] && !free[mi] && !skipped[mi]){
    m[1].forEach((f,fi)=>{if(!omitted(date,mi,fi))total=add(total,macros(currentText(date,mi,fi,f)))});
    addedFoods(date,mi).forEach(x=>total=add(total,macros(x)));
   }
@@ -537,7 +550,7 @@ function macroBlock(day,date){
 }
 function bar(label,v,t,u){return `<div class="macro-row"><div class="macro-head"><span>${label}</span><strong>${Math.round(v)} / ${Math.round(t)} ${u}</strong></div><div class="track"><i style="width:${pct(v,t)}%"></i></div></div>`}
 function mealCard(day,date,m,mi,editable=true){
- const done=!!load(`meals:${date}`,{})[mi],isFree=!!freeMeals(date)[mi];
+ const done=!!load(`meals:${date}`,{})[mi],isFree=!!freeMeals(date)[mi],isSkipped=!!skippedMeals(date)[mi];
  const foods=m[1].map((orig,fi)=>{
   const text=currentText(date,mi,fi,orig),isO=omitted(date,mi,fi),mac=macros(text);
   return `<div class="food ${isO?'omitted':''}"><div><strong>${text}</strong>${mac.known?`<small>≈ ${Math.round(mac.kcal)} kcal · P ${Math.round(mac.p)} · HC ${Math.round(mac.c)} · G ${Math.round(mac.f)}</small>`:''}</div>${editable?`<div class="food-actions"><button class="tiny" data-edit="${mi}:${fi}">Cambiar</button><button class="tiny" data-omit="${mi}:${fi}">${isO?'Restaurar':'Omitir'}</button></div>`:''}</div>`;
@@ -546,9 +559,12 @@ function mealCard(day,date,m,mi,editable=true){
   const am=macros(x);
   return `<div class="food"><div><strong>${x}</strong>${am.known?`<small>≈ ${Math.round(am.kcal)} kcal · P ${Math.round(am.p)} · HC ${Math.round(am.c)} · G ${Math.round(am.f)}</small>`:'<small>Macros no disponibles</small>'}<small>Añadido</small></div>${editable?`<button class="tiny danger" data-rmadd="${mi}:${i}">Quitar</button>`:''}</div>`;
  }).join('');
- return `<div class="card meal-card ${done?'v7done':''} ${isFree?'meal-free':''}" data-meal-index="${mi}" data-meal-done="${done?1:0}">
- <div class="meal-head"><strong>${isFree?'🍽️ '+m[0]+' · COMIDA LIBRE':m[0]}</strong>${editable?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div>
- ${isFree?`<p class="note">La comida prevista no se contabiliza. Puedes registrar lo que tomes en Extras si quieres estimar el día.</p><button class="secondary" data-free-meal="${mi}" style="width:100%">Restaurar comida prevista</button>`:`<details ${done?'':'open'}><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<div class="row"><button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button><button class="secondary" data-free-meal="${mi}" style="width:100%;margin-top:10px">🍽️ Marcar como comida libre</button></div>`:''}</details>`}
+ const stateLabel=isSkipped?'⏭️ '+m[0]+' · SALTADA':isFree?'🍽️ '+m[0]+' · COMIDA LIBRE':m[0];
+ return `<div class="card meal-card ${done?'v7done':''} ${isFree?'meal-free':''} ${isSkipped?'meal-skipped':''}" data-meal-index="${mi}" data-meal-done="${done?1:0}" data-meal-skipped="${isSkipped?1:0}">
+ <div class="meal-head"><strong>${stateLabel}</strong>${editable&&!isSkipped?`<button class="check ${done?'done':''}" data-done="${mi}">${done?'✓':'○'}</button>`:''}</div>
+ ${isSkipped?`<p class="note">Esta comida no se contabiliza en el plan del día.</p><button class="secondary" data-skip-meal="${mi}" style="width:100%">Restaurar comida</button>`:
+ isFree?`<p class="note">La comida prevista no se contabiliza. Puedes registrar lo que tomes en Extras para estimar el día.</p><div class="row"><button class="secondary" data-free-meal="${mi}" style="width:100%">Restaurar comida prevista</button><button class="secondary" data-skip-meal="${mi}" style="width:100%">⏭️ Saltar comida</button></div>`:
+ `<details ${done?'':'open'}><summary class="note">Ver alimentos</summary><div class="food-list">${foods}${adds}</div>${editable?`<div class="row"><button class="secondary" data-add="${mi}" style="width:100%;margin-top:10px">+ Añadir alimento</button><button class="secondary" data-free-meal="${mi}" style="width:100%;margin-top:10px">🍽️ Marcar como comida libre</button><button class="secondary" data-skip-meal="${mi}" style="width:100%;margin-top:10px">⏭️ Saltar comida</button></div>`:''}</details>`}
  </div>`;
 }
 
@@ -670,7 +686,14 @@ function bindMealActions(day,date){
  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{openFoodAddModal(day,date,Number(b.dataset.add))});
  document.querySelectorAll('[data-rmadd]').forEach(b=>b.onclick=()=>{const [mi,i]=b.dataset.rmadd.split(':'),k=`v10MealAdds:${date}`,d=load(k,{});(d[mi]||[]).splice(+i,1);save(k,d);render()});
 
- document.querySelectorAll('[data-free-meal]').forEach(b=>b.onclick=()=>toggleFreeMeal(date,Number(b.dataset.freeMeal)));
+ document.querySelectorAll('[data-free-meal]').forEach(b=>b.onclick=()=>{toggleFreeMeal(date,Number(b.dataset.freeMeal));setTimeout(()=>openRebalanceModal(day,date),90);});
+ document.querySelectorAll('[data-skip-meal]').forEach(b=>b.onclick=()=>{
+   const mi=Number(b.dataset.skipMeal);
+   const d=load(`meals:${date}`,{});if(d[mi]){delete d[mi];save(`meals:${date}`,d);}
+   const f=freeMeals(date);if(f[mi]){delete f[mi];save(`freeMeals:${date}`,f);}
+   const x=skippedMeals(date);if(x[mi])delete x[mi];else x[mi]=true;save(`skippedMeals:${date}`,x);
+   render();setTimeout(()=>openRebalanceModal(day,date),90);
+ });
 }
 function resetDayMenu(day,date){
  if(!confirm('Se perderán los cambios manuales de alimentos y cantidades de este día. ¿Restaurar menú original?')) return;
@@ -678,6 +701,7 @@ function resetDayMenu(day,date){
  localStorage.removeItem('v6MealOmit:'+date);
  localStorage.removeItem('v6MealRedis:'+date);
  localStorage.removeItem('v10MealAdds:'+date);
+ localStorage.removeItem('skippedMeals:'+date);
  const month=date.slice(0,7),plans=load('v9Plans',{});
  if(!plans[month]) plans[month]={};
  if(!plans[month].meals) plans[month].meals={};
@@ -727,7 +751,7 @@ function v73StickyBar(day,date){
  return `<div class="v73sticky" id="v73Sticky"><span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal} ${v82Delta(plan.kcal,t.kcal,'kcal')}</span><span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p} ${v82Delta(plan.p,t.p,'p')}</span><span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c} ${v82Delta(plan.c,t.c,'c')}</span><span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f} ${v82Delta(plan.f,t.f,'f')}</span></div>`;
 }
 function renderToday(){
- const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{});const ordered=plan.map((m,i)=>({m,i,done:!!done[i]})).sort((a,b)=>Number(a.done)-Number(b.done));
+ const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
  document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}${renderExtrasBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
  bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
 }

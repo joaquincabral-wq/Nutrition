@@ -1,20 +1,21 @@
-JC Nutrition V8.5 - Reajuste tras Extras
+JC Nutrition V8.6 - Reajuste dinámico
 
-Base: V8.4 Rodilla.
+Base: V8.5.
 
-Nueva función:
-- Después de añadir un Extra o un Surtido Rodilla se abre automáticamente “Reajustar resto del día”.
-- También hay un botón manual en Extras.
-- Solo modifica comidas pendientes; nunca toca comidas ya marcadas como realizadas.
-- Prioridad de ajuste:
-  1) grasas añadidas (AOVE, pistachos/nueces, aguacate);
-  2) hidratos densos (arroz, patata, pasta, avena, etc.);
-  3) fruta solo si sigue siendo necesario;
-  4) proteína como último recurso, intentando mantener al menos objetivo -10 g.
-- Verduras no se recortan.
-- Antes de aplicar muestra: plan actual, objetivo, plan propuesto y cada cambio.
-- Requiere confirmación antes de aplicar.
-- Si los Extras hacen imposible cuadrar el día sin recortes agresivos, lo avisa y no fuerza más.
+Novedades:
+- Cada comida puede estar: Pendiente / Realizada / Saltada.
+- “Saltar comida” elimina esa comida del plan proyectado del día.
+- Al saltar o restaurar una comida se abre una nueva propuesta de reajuste.
+- “Recalcular resto del día” está siempre disponible y puede usarse ilimitadamente.
+- El motor trabaja siempre con el estado actual:
+  consumido real + Extras/comidas libres + comidas saltadas + comidas pendientes.
+- Si vas por encima del objetivo reduce solo comidas pendientes.
+- Si, por ejemplo, saltas la merienda y quedas por debajo, puede volver a aumentar cantidades de la cena pendiente.
+- Nunca modifica comidas ya realizadas ni comidas saltadas.
+- Prioridad al recortar: grasas añadidas -> hidratos densos -> fruta -> proteína.
+- Al aumentar: prioriza proteína si falta, después hidratos, y evita forzar comida de forma agresiva.
+- La propuesta siempre requiere confirmación antes de aplicarse.
+- Pendientes aparecen primero; saltadas después; realizadas al final.
 
-Mantiene todas las funciones de V8.4, incluido Rodilla.
+Mantiene Rodilla y el resto de funciones de V8.5.
 JavaScript validado con node --check.

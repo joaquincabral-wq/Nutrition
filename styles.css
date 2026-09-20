@@ -150,3 +150,6 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .v85-action:last-child{border-bottom:0}
 .v85-action strong{grid-column:2;color:#86efac}
 @media(max-width:520px){.v85-action{grid-template-columns:1fr}.v85-action strong{grid-column:1}}
+
+.meal-skipped{opacity:.62;border-style:dashed}
+.meal-skipped .meal-head strong{color:#fbbf24}
