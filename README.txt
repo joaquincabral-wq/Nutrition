@@ -1,26 +1,13 @@
-JC Nutrition V8.8 - Frutos secos y equivalencias de grasas
+JC Nutrition V8.9 - Dieta 14 (2026)
 
-Base: V8.7.
+Base: V8.8.
 
-Añadido a Cambiar/Añadir:
-- Pistachos
-- Almendras
-- Nueces
-- Anacardos
-- Avellanas
-- AOVE
-- Aguacate
+Cambios:
+- Nuevo plan Dieta 14 - 2026.
+- Media manana de lunes a viernes.
+- Hidratos reducidos, no cetogenica estricta.
+- Objetivos: fuerza 2050 kcal / 180 P / 130 C / 90 G; LISS 1950 / 180 / 100 / 90; descanso 1900 / 180 / 80 / 95.
+- Conserva reajuste dinamico, 3 alternativas, estados de comidas, Extras/Rodilla y frutos secos.
+- Migracion unica 8.9 para cargar el nuevo plan y objetivos sin borrar historico.
 
-Equivalencias:
-- Entre frutos secos y otras fuentes de grasa se usa como referencia principal la equivalencia calórica.
-- La app sigue mostrando kcal, proteína, hidratos y grasa de la sustitución.
-- Las cantidades siguen siendo editables antes de guardar.
-
-Mantiene todas las funciones de V8.7:
-- reajuste dinámico
-- hasta 3 alternativas
-- comidas pendientes/realizadas/saltadas
-- Extras/Rodilla
-- recalculo repetible
-
-JavaScript validado con node --check.
+Nota: los objetivos son una fase inicial de 14 dias y se revisan con peso, cintura y rendimiento.
