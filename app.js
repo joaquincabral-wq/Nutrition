@@ -1,15 +1,15 @@
-window.JC_NUTRITION_VERSION='8.9.1';
+window.JC_NUTRITION_VERSION='8.9.3';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
 const BASE_MEALS={
- lunes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura o ensalada','35 g AOVE']]],
- martes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
- miércoles:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
- jueves:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
- viernes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
+ lunes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura o ensalada','35 g AOVE']]],
+ martes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
+ miércoles:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
+ jueves:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
+ viernes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
  sábado:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g pechuga de pollo','20 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','150 g fruta','20 g pistachos']],['Cena',['300 g pescado','300 g ensalada','25 g AOVE']]],
- domingo:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g pechuga de pollo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g fruta','20 g nueces']],['Cena',['300 g pescado blanco','300 g ensalada','30 g AOVE']]]
+ domingo:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['275 g pechuga de pollo','300 g verdura','20 g AOVE']],['Merienda',['250 g queso fresco batido 0%','100 g fruta','20 g nueces']],['Cena',['300 g pescado blanco','300 g ensalada','30 g AOVE']]]
 };
 
 const DB=[
@@ -229,7 +229,10 @@ function parseQty(text){
 }
 function foodDef(text){
  const t=String(text).toLowerCase();
- const db=DB.find(x=>x[1].some(p=>t.includes(p)));
+ // Prefer the most specific alias. This prevents "claras de huevo" from
+ // being classified as whole egg simply because it also contains "huevo".
+ const matches=DB.filter(x=>x[1].some(p=>t.includes(p)));
+ const db=matches.sort((a,b)=>Math.max(...b[1].filter(p=>t.includes(p)).map(p=>p.length))-Math.max(...a[1].filter(p=>t.includes(p)).map(p=>p.length)))[0];
  if(db) return db;
  const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
  const smart=exact||smartFoodFromText(text);
@@ -263,14 +266,17 @@ function migrateBasePlanV8(){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});if(!plans[month])plans[month]={};plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));save('v9Plans',plans);localStorage.setItem('jcNutritionBasePlanVersion','8');
 }
 function migrateDiet14V89(){
- if(localStorage.getItem('jcNutritionDiet14Version')==='8.9.1')return;
- const month=localISO().slice(0,7),plans=load('v9Plans',{});
+ if(localStorage.getItem('jcNutritionDiet14Version')==='8.9.3')return;
+ const month=localISO().slice(0,7),plans=load('v9Plans',{}),date=localISO();
  if(!plans[month])plans[month]={};
  plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
  save('v9Plans',plans);
  save('v7Targets',JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)));
+ // Clear only today's stale plan edits from previous Dieta 14 builds.
+ // History, measurements, completed-meal marks and Extras are preserved.
+ ['mealSubs:','v6MealOmit:','v6MealRedis:','v10MealAdds:','freeMeals:','skippedMeals:'].forEach(k=>localStorage.removeItem(k+date));
  localStorage.setItem('jcNutritionBasePlanVersion','8');
- localStorage.setItem('jcNutritionDiet14Version','8.9.1');
+ localStorage.setItem('jcNutritionDiet14Version','8.9.3');
 }
 function planForDay(day){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});
@@ -818,7 +824,7 @@ function resetDayMenu(day,date){
  render();
 }
 
-const V7_DEFAULT_TARGETS={training:{kcal:2020,p:180,c:130,f:92},cardio:{kcal:1920,p:180,c:100,f:95},rest:{kcal:1850,p:175,c:80,f:95}};
+const V7_DEFAULT_TARGETS={training:{kcal:2050,p:180,c:130,f:90},cardio:{kcal:1950,p:180,c:100,f:92},rest:{kcal:1900,p:180,c:75,f:98}};
 function v7Targets(){const saved=load('v7Targets',{});return {...JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)),...saved};}
 function v7DefaultType(day){return ['lunes','martes','miércoles','jueves','viernes'].includes(String(day).toLowerCase())?'training':'rest';}
 function v7Type(day,date){return load('v7DayTypes',{})[date]||v7DefaultType(day);}

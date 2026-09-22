@@ -1,0 +1,330 @@
+window.JC_NUTRITION_VERSION='8.9.2';
+
+const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+const BASE_MEALS={
+ lunes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura o ensalada','35 g AOVE']]],
+ martes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
+ miércoles:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
+ jueves:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
+ viernes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
+ sábado:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g pechuga de pollo','20 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','150 g fruta','20 g pistachos']],['Cena',['300 g pescado','300 g ensalada','25 g AOVE']]],
+ domingo:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g pechuga de pollo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g fruta','20 g nueces']],['Cena',['300 g pescado blanco','300 g ensalada','30 g AOVE']]]
+};
+
+const DB=[
+ ['avena',['avena'],389,16.9,66.3,6.9],
+ ['whey',['whey','proteina en polvo','proteína en polvo'],390,78,8,6],
+ ['arandanos',['arándanos','arandanos'],57,.7,14.5,.3],
+ ['bebida_almendras',['bebida de almendras'],15,.5,.3,1.1],
+ ['pollo',['pollo','pollo/pavo'],120,23,0,2.6],
+ ['pavo',['pavo'],115,24,0,1.5],
+ ['arroz',['arroz'],360,7,80,.7],
+ ['verduras',['verduras','verdura'],30,2,5,.3],
+ ['aove',['aove','aceite'],884,0,0,100],
+ ['melon',['melón','melon'],34,.8,8.2,.2],
+ ['qfb',['queso fresco batido'],46,8,4,.2],
+ ['melocoton',['melocotón','melocoton'],39,.9,9.5,.3],
+ ['pistachos',['pistachos'],562,20,28,45],
+ ['merluza',['merluza','pescado blanco'],86,18.5,0,1.8],
+ ['patata',['patata'],77,2,17,.1],
+ ['huevo',['huevo','huevos'],143,12.6,.7,9.5],
+ ['claras',['claras'],48,10.5,.7,.2],
+ ['ternera',['ternera','carne magra'],170,24,0,8],
+ ['bacalao',['bacalao'],82,18,0,.7],
+ ['cacahuete',['cacahuete en polvo'],380,46,35,12],
+ ['fruta',['fruta'],50,.6,12,.2],
+ ['kiwi',['kiwi'],61,1.1,14.7,.5],
+ ['dorada',['dorada'],115,20,0,4],
+ ['ensalada',['ensalada'],20,1,3,.2],
+ ['aguacate',['aguacate'],160,2,8.5,14.7],
+ ['pescado',['pescado'],110,20,0,3],
+ ['activia',['activia natural edulcorado','activia'],39,4.0,4.8,0.4],
+ ['salvado_avena',['salvado de avena','salvado'],246,17.3,66.2,7.0],
+ ['fresas',['fresas','fresa'],32,0.7,7.7,0.3],
+ ['almendras',['almendras', 'almendra'],579,21.2,21.6,49.9],
+ ['nueces',['nueces', 'nuez'],654,15.2,13.7,65.2],
+ ['anacardos',['anacardos', 'anacardo'],553,18.2,30.2,43.8],
+ ['avellanas',['avellanas', 'avellana'],628,15.0,16.7,60.8]
+];
+
+
+const SMART_FOODS=[
+ {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
+ {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
+ {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6},
+ {name:'Ternera magra',cat:'proteina',kcal:170,p:24,c:0,f:8},
+ {name:'Merluza',cat:'proteina',kcal:86,p:18.5,c:0,f:1.8},
+ {name:'Bacalao',cat:'proteina',kcal:82,p:18,c:0,f:.7},
+ {name:'Dorada',cat:'proteina',kcal:115,p:20,c:0,f:4},
+ {name:'Salmón',cat:'proteina',kcal:208,p:20,c:0,f:13},
+ {name:'Atún fresco',cat:'proteina',kcal:144,p:23,c:0,f:5},
+ {name:'Gambas',cat:'proteina',kcal:99,p:24,c:.2,f:.3},
+ {name:'Arroz en crudo',cat:'hidrato',kcal:360,p:7,c:80,f:.7},
+ {name:'Patata en crudo',cat:'hidrato',kcal:77,p:2,c:17,f:.1},
+ {name:'Batata en crudo',cat:'hidrato',kcal:86,p:1.6,c:20,f:.1},
+ {name:'Avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
+ {name:'Melocotón',cat:'fruta',kcal:39,p:.9,c:9.5,f:.3},
+ {name:'Sandía',cat:'fruta',kcal:30,p:.6,c:7.6,f:.2},
+ {name:'Arándanos',cat:'fruta',kcal:57,p:.7,c:14.5,f:.3},
+ {name:'Frambuesas',cat:'fruta',kcal:52,p:1.2,c:12,f:.7},
+ {name:'Moras',cat:'fruta',kcal:43,p:1.4,c:10,f:.5},
+ {name:'Plátano',cat:'fruta',kcal:89,p:1.1,c:23,f:.3},
+ {name:'Ciruelas',cat:'fruta',kcal:46,p:.7,c:11,f:.3},
+ {name:'Calabacín',cat:'verdura',kcal:17,p:1.2,c:3.1,f:.3},
+ {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
+ {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
+ {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
+ {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
+ {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0},
+ {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2},
+ {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4},
+ {name:'Tomate natural',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
+ {name:'Tomate cherry',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
+ {name:'Lechuga',cat:'verdura',kcal:15,p:1.4,c:2.9,f:0.2},
+ {name:'Pepino',cat:'verdura',kcal:15,p:0.7,c:3.6,f:0.1},
+ {name:'Espárragos verdes',cat:'verdura',kcal:20,p:2.2,c:3.9,f:0.1},
+ {name:'Pimiento',cat:'verdura',kcal:31,p:1.0,c:6.0,f:0.3},
+ {name:'Champiñones',cat:'verdura',kcal:22,p:3.1,c:3.3,f:0.3},
+ {name:'Judías verdes',cat:'verdura',kcal:31,p:1.8,c:7.0,f:0.2},
+ {name:'Cebolla',cat:'verdura',kcal:40,p:1.1,c:9.3,f:0.1},
+ {name:'Espinacas',cat:'verdura',kcal:23,p:2.9,c:3.6,f:0.4},
+ {name:'Zanahoria',cat:'verdura',kcal:41,p:0.9,c:9.6,f:0.2},
+ {name:'Melón',cat:'fruta',kcal:34,p:0.8,c:8.2,f:0.2},
+ {name:'Naranja',cat:'fruta',kcal:47,p:0.9,c:11.8,f:0.1},
+ {name:'Manzana',cat:'fruta',kcal:52,p:0.3,c:13.8,f:0.2},
+ {name:'Pera',cat:'fruta',kcal:57,p:0.4,c:15.2,f:0.1},
+ {name:'Kiwi',cat:'fruta',kcal:61,p:1.1,c:14.7,f:0.5},
+ {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
+ {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
+ {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2},
+ {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5},
+ {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1},
+ {name:'Fresas',cat:'fruta',kcal:32,p:0.7,c:7.7,f:0.3},
+ {name:'AOVE',cat:'grasa',kcal:884,p:0,c:0,f:100},
+ {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5},
+ {name:'Pistachos',cat:'grasa',kcal:562,p:20.3,c:27.5,f:45.4},
+ {name:'Almendras',cat:'grasa',kcal:579,p:21.2,c:21.6,f:49.9},
+ {name:'Nueces',cat:'grasa',kcal:654,p:15.2,c:13.7,f:65.2},
+ {name:'Anacardos',cat:'grasa',kcal:553,p:18.2,c:30.2,f:43.8},
+ {name:'Avellanas',cat:'grasa',kcal:628,p:15.0,c:16.7,f:60.8},
+ {name:'Aguacate',cat:'grasa',kcal:160,p:2.0,c:8.5,f:14.7}
+];
+
+function customFoods(){return load('customFoodsV8',[]);}
+function classifyFood(name,kcal,p,c,f){
+ const n=String(name||'').toLowerCase();
+ if(/fruta|fresa|arándan|arandan|melocot|sandía|sandia|plátano|platano|ciruela|melón|melon|naranja|manzana|pera|kiwi|framb|mora/.test(n))return'fruta';
+ if(/lechuga|tomate|pepino|espárr|esparr|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria|brócoli|brocoli|coliflor|calabac|berenjena|verdura/.test(n))return'verdura';
+ if(/yogur|queso|kéfir|kefir|leche|lácteo|lacteo|almendra/.test(n))return'lacteo';
+ if(f>=45&&c<20&&p<20)return'grasa';
+ if(p>=18&&p>=c*.8)return'proteina';
+ if(c>=30&&c>=p*1.5)return'hidrato';
+ if(kcal<=70&&c>=5&&f<5)return'fruta';
+ return'mixto';
+}
+function normalizedCustomFood(x){
+ const ref=Number(x.refQty)||100, factor=100/ref;
+ if(x.normalized!==false && !x.refQty)return {...x,refQty:100,refUnit:x.unit||'g'};
+ return {...x,kcal:Number(x.labelKcal??x.kcal)*factor,p:Number(x.labelP??x.p)*factor,c:Number(x.labelC??x.c)*factor,f:Number(x.labelF??x.f)*factor,unit:x.refUnit||x.unit||'g'};
+}
+
+const RODILLA_FOODS=[
+ {name:'Rodilla · Pollo curry',cat:'rodilla',unitKcal:155,unitP:7,unitC:15,unitF:7,estimate:true},
+ {name:'Rodilla · Pollo mostaza',cat:'rodilla',unitKcal:145,unitP:8,unitC:15,unitF:6,estimate:true},
+ {name:'Rodilla · Vegetal',cat:'rodilla',unitKcal:130,unitP:4,unitC:15,unitF:6,estimate:true},
+ {name:'Rodilla · Queso, nueces y Oporto',cat:'rodilla',unitKcal:170,unitP:5,unitC:15,unitF:10,estimate:true},
+ {name:'Rodilla · Queso azul y rúcula',cat:'rodilla',unitKcal:150,unitP:5,unitC:15,unitF:8,estimate:true},
+ {name:'Rodilla · Ahumados',cat:'rodilla',unitKcal:145,unitP:6,unitC:15,unitF:7,estimate:true},
+ {name:'Rodilla · Atún con tomate',cat:'rodilla',unitKcal:140,unitP:7,unitC:15,unitF:6,estimate:true}
+];
+
+function allFoodCatalog(){return [...RODILLA_FOODS,...SMART_FOODS,...customFoods().map(normalizedCustomFood)];}
+function smartFoodFromText(text){
+ const t=String(text).toLowerCase();
+ const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
+ if(exact)return exact;
+ const rules=[
+  ['Pistachos',['pistachos','pistacho']],
+  ['Almendras',['almendras','almendra']],
+  ['Nueces',['nueces','nuez']],
+  ['Anacardos',['anacardos','anacardo']],
+  ['Avellanas',['avellanas','avellana']],
+  ['AOVE',['aove','aceite de oliva']],
+  ['Aguacate',['aguacate']],
+  ['Fresas',['fresas','fresa']],
+  ['Bebida de almendras sin azúcar',['bebida de almendras','almendras sin azúcar']],
+  ['Tomate cherry',['tomate cherry','cherry']],
+  ['Tomate natural',['tomate natural','tomate']],
+  ['Lechuga',['lechuga']],
+  ['Pepino',['pepino']],
+  ['Espárragos verdes',['espárragos','esparragos']],
+  ['Pimiento',['pimiento']],
+  ['Champiñones',['champiñ']],
+  ['Judías verdes',['judías verdes','judias verdes']],
+  ['Cebolla',['cebolla']],
+  ['Espinacas',['espinaca']],
+  ['Zanahoria',['zanahoria']],
+  ['Melón',['melón','melon']],
+  ['Naranja',['naranja']],
+  ['Manzana',['manzana']],
+  ['Pera',['pera']],
+  ['Kiwi',['kiwi']],
+  ['Pechuga de pollo',['pechuga de pollo']],
+  ['Pechuga de pavo',['pechuga de pavo']],
+  ['Claras de huevo',['claras']],
+  ['Pasta en crudo',['pasta']],
+  ['Queso fresco batido 0%',['queso fresco batido']],
+  ['Activia natural edulcorado',['activia']],
+  ['Copos de avena',['copos de avena','copos']],
+  ['Salvado de avena',['salvado de avena','salvado']],
+  ['Pollo',['pollo']],['Pavo plancha',['pavo']],['Cinta de lomo',['lomo']],
+  ['Ternera magra',['ternera','carne magra']],['Merluza',['merluza','pescado blanco']],
+  ['Bacalao',['bacalao']],['Dorada',['dorada']],['Salmón',['salmón','salmon']],
+  ['Atún fresco',['atún','atun']],['Gambas',['gambas','langostinos']],
+  ['Arroz en crudo',['arroz']],['Patata en crudo',['patata']],['Batata en crudo',['batata']],
+  ['Avena',['avena']],['Melocotón',['melocot']],['Sandía',['sandía','sandia']],
+  ['Arándanos',['arándan','arandan']],['Frambuesas',['framb']],['Moras',['moras']],
+  ['Plátano',['plátano','platano']],['Ciruelas',['ciruela']],['Calabacín',['calabac']],
+  ['Berenjena',['berenjena']],['Brócoli',['brócoli','brocoli']],['Coliflor',['coliflor']]
+ ];
+ for(const [name,keys] of rules){
+  if(keys.some(k=>t.includes(k))) return allFoodCatalog().find(x=>x.name===name);
+ }
+ return null;
+}
+
+function equivalentQty(originalText,target){
+ const src=smartFoodFromText(originalText), qty=parseQty(originalText);
+ if(!src||!target||qty==null) return null;
+ let q=qty;
+ if(src.cat==='proteina'&&target.cat==='proteina') q=qty*(src.p/target.p);
+ else if(src.cat==='hidrato'&&target.cat==='hidrato') q=qty*(src.c/target.c);
+ else if(src.cat==='fruta'&&target.cat==='fruta') q=qty*(src.c/target.c);
+ else if(src.cat==='verdura'&&target.cat==='verdura') q=qty;
+ else if(src.cat==='lacteo'&&target.cat==='lacteo') q=qty*(src.kcal/target.kcal);
+ else if(src.cat==='grasa'&&target.cat==='grasa') q=qty*(src.kcal/target.kcal);
+ else q=qty*(src.kcal/target.kcal);
+ return Math.max(5,Math.round(q/5)*5);
+}
+
+const state={view:'today',selectedDay:dayKey(),selectedDate:localISO()};
+
+function localISO(d=new Date()){
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return `${y}-${m}-${day}`;
+}
+function dayKey(d=new Date()){return DAYS[d.getDay()]}
+function load(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function money(n){return Math.round(n)}
+function parseQty(text){
+ const m=String(text).match(/([0-9]+(?:[.,][0-9]+)?)\s*(g|ml)/i);
+ if(m)return +m[1].replace(',','.');
+ const un=String(text).match(/([0-9]+(?:[.,][0-9]+)?)\s*(unidad|unidades)/i);
+ if(un)return +un[1].replace(',','.');
+ const u=String(text).match(/^([0-9]+)\s+huevos?/i);
+ if(u)return +u[1]*60;
+ return null;
+}
+function foodDef(text){
+ const t=String(text).toLowerCase();
+ // Prefer the most specific alias. This prevents "claras de huevo" from
+ // being classified as whole egg simply because it also contains "huevo".
+ const matches=DB.filter(x=>x[1].some(p=>t.includes(p)));
+ const db=matches.sort((a,b)=>Math.max(...b[1].filter(p=>t.includes(p)).map(p=>p.length))-Math.max(...a[1].filter(p=>t.includes(p)).map(p=>p.length)))[0];
+ if(db) return db;
+ const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
+ const smart=exact||smartFoodFromText(text);
+ return smart ? [smart.name,[smart.name.toLowerCase()],smart.kcal,smart.p,smart.c,smart.f] : null;
+}
+function macros(text){
+ const q=parseQty(text);
+ if(q==null)return {kcal:0,p:0,c:0,f:0,known:false};
+ const smart=smartFoodFromText(text);
+ if(smart&&smart.cat==='rodilla'){
+   return {kcal:smart.unitKcal*q,p:smart.unitP*q,c:smart.unitC*q,f:smart.unitF*q,known:true,estimated:true};
+ }
+ const def=foodDef(text);
+ if(!def)return {kcal:0,p:0,c:0,f:0,known:false};
+ const factor=q/100;
+ return {kcal:def[2]*factor,p:def[3]*factor,c:def[4]*factor,f:def[5]*factor,known:true};
+}
+function add(a,b){return {kcal:a.kcal+b.kcal,p:a.p+b.p,c:a.c+b.c,f:a.f+b.f}}
+function migrateBasePlanV6(){
+ if(localStorage.getItem('jcNutritionBasePlanVersion')==='6') return;
+ const month=localISO().slice(0,7);
+ const plans=load('v9Plans',{});
+ if(!plans[month]) plans[month]={};
+ plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
+ save('v9Plans',plans);
+ localStorage.setItem('jcNutritionBasePlanVersion','6');
+}
+
+function migrateBasePlanV8(){
+ if(localStorage.getItem('jcNutritionBasePlanVersion')==='8')return;
+ const month=localISO().slice(0,7),plans=load('v9Plans',{});if(!plans[month])plans[month]={};plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));save('v9Plans',plans);localStorage.setItem('jcNutritionBasePlanVersion','8');
+}
+function migrateDiet14V89(){
+ if(localStorage.getItem('jcNutritionDiet14Version')==='8.9.1')return;
+ const month=localISO().slice(0,7),plans=load('v9Plans',{});
+ if(!plans[month])plans[month]={};
+ plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
+ save('v9Plans',plans);
+ save('v7Targets',JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)));
+ localStorage.setItem('jcNutritionBasePlanVersion','8');
+ localStorage.setItem('jcNutritionDiet14Version','8.9.1');
+}
+function planForDay(day){
+ const month=localISO().slice(0,7),plans=load('v9Plans',{});
+ return plans?.[month]?.meals?.[day] || BASE_MEALS[day];
+}
+function currentText(date,mi,fi,original){
+ const subs=load(`mealSubs:${date}`,{});
+ let text=subs[`${mi}:${fi}`]?.replacement || original;
+ const reds=load(`v6MealRedis:${date}`,{});
+ let extra=0;
+ Object.values(reds).forEach(r=>{if(r&&r.targetMi===mi&&r.targetFi===fi)extra+=Number(r.delta||0)});
+ if(extra){
+  const q=parseQty(text);
+  if(q!=null) text=text.replace(/([0-9]+(?:[.,][0-9]+)?)\s*(g|ml)/i,`${Math.round(q+extra)} $2`);
+ }
+ return text;
+}
+function omitted(date,mi,fi){return !!load(`v6MealOmit:${date}`,{})[`${mi}:${fi}`]}
+function addedFoods(date,mi){return load(`v10MealAdds:${date}`,{})[String(mi)]||[]}
+
+function freeMeals(date){return load(`freeMeals:${date}`,{});}
+function skippedMeals(date){return load(`skippedMeals:${date}`,{});}
+function toggleSkippedMeal(date,mi){
+ const x=skippedMeals(date);
+ if(x[mi]) delete x[mi]; else x[mi]=true;
+ save(`skippedMeals:${date}`,x);
+ render();
+}
+function dayExtras(date){return load(`dayExtras:${date}`,[]);}
+function extrasTotals(date){
+ let total={kcal:0,p:0,c:0,f:0};
+ dayExtras(date).forEach(x=>{total=add(total,macros(`${x.qty} ${x.unit||'g'} ${x.name}`));});
+ return total;
+}
+function planOnlyTotals(day,date){
+ let total={kcal:0,p:0,c:0,f:0};
+ const plan=planForDay(day),free=freeMeals(date),skipped=skippedMeals(date);
+ plan.forEach((m,mi)=>{
+   if(free[mi]||skipped[mi]) return;
+   m[1].forEach((f,fi)=>{if(!omitted(date,mi,fi))total=add(total,macros(currentText(date,mi,fi,f)))});
+   addedFoods(date,mi).forEach(x=>total=add(total,macros(x)));
+ });
+ return total;
+}
+function extrasFrequent(){
+ return load('extrasFrequent',[]);
+}
+function rememberExtra(name){
+ const arr=extrasFrequent();
+ const hit=arr.find(x=>x.name===name);
+ if(hit) hit.count=(hit.count||0)+1; else arr.push({name,count:1});
+ arr.sort((a,b)=>(b.count||0)-(a.count||0));
+ save('extrasFrequent',arr.slice(0,12));
+}

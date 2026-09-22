@@ -1,0 +1,111 @@
+ save('v9Plans',plans);
+ render();
+}
+
+const V7_DEFAULT_TARGETS={training:{kcal:2020,p:180,c:130,f:92},cardio:{kcal:1920,p:180,c:100,f:95},rest:{kcal:1850,p:175,c:80,f:95}};
+function v7Targets(){const saved=load('v7Targets',{});return {...JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)),...saved};}
+function v7DefaultType(day){return ['lunes','martes','miércoles','jueves','viernes'].includes(String(day).toLowerCase())?'training':'rest';}
+function v7Type(day,date){return load('v7DayTypes',{})[date]||v7DefaultType(day);}
+function v7Status(v,t,k){if(!t)return'warn';const r=v/t;if(k==='kcal'){if(r>=.95&&r<=1.05)return'ok';if(r>=.90&&r<=1.10)return'warn';return'bad';}if(k==='p'){if(v>=t-10&&v<=t+25)return'ok';if(v>=t-25&&v<=t+40)return'warn';return'bad';}if(k==='c'||k==='f'){if(r>=.90&&r<=1.10)return'ok';if(r>=.80&&r<=1.20)return'warn';return'bad';}return'ok';}
+function v82Delta(v,t,k){const d=Math.round(v-t);return d===0?'=':`${d>0?'↑':'↓'}${Math.abs(d)}${k==='kcal'?'':' g'}`;}
+function v82Score(x,t){return Math.abs(x.kcal-t.kcal)/Math.max(100,t.kcal)*2+Math.abs(x.p-t.p)/Math.max(20,t.p)+Math.abs(x.c-t.c)/Math.max(20,t.c)+Math.abs(x.f-t.f)/Math.max(10,t.f)*1.2;}
+function v82Advice(day,date){
+ const t=v7Targets()[v7Type(day,date)],plan=dayTotals(day,date),done=load(`meals:${date}`,{}),meals=planForDay(day),before=v82Score(plan,t),cands=[];
+ const free=freeMeals(date),et=extrasTotals(date);if(Object.keys(free).length||et.kcal>350)return {html:'<strong>Consejo:</strong> Día con comida libre o extras importantes. Mantén el resto del plan normal; no compenses de forma agresiva.',action:null};
+ meals.forEach((m,mi)=>{if(done[mi]||free[mi])return;m[1].forEach((orig,fi)=>{if(omitted(date,mi,fi))return;const text=currentText(date,mi,fi,orig),q=parseQty(text),fd=smartFoodFromText(text);if(!q||!fd)return;const steps=fd.cat==='grasa'?[5,10]:fd.cat==='hidrato'?[10,20,30,40,50]:fd.cat==='proteina'?[20,30,40,50]:[25,50,75];for(const delta of steps){for(const sign of [-1,1]){const nq=q+sign*delta;if(nq<=0||nq<q*.35)continue;const old=macros(text),neu={kcal:fd.kcal*nq/100,p:fd.p*nq/100,c:fd.c*nq/100,f:fd.f*nq/100},np={kcal:plan.kcal-old.kcal+neu.kcal,p:plan.p-old.p+neu.p,c:plan.c-old.c+neu.c,f:plan.f-old.f+neu.f};const score=v82Score(np,t);if(score<before*.88)cands.push({score,mi,fi,old:q,nq,fd,text,np,meal:m[0]});}}});});
+ cands.sort((a,b)=>a.score-b.score);const best=cands[0];
+ const states=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
+ if(states.every(x=>x==='ok'))return {html:'<strong>Consejo:</strong> No necesitas ajustar nada. El plan está suficientemente cerca de tus objetivos.',action:null};
+ if(!best)return {html:'<strong>Consejo:</strong> Hay alguna desviación, pero no veo un ajuste simple y útil en las comidas pendientes. Mejor no forzar cambios pequeños.',action:null};
+ const dir=best.nq>best.old?'sube':'baja';
+ return {html:`<strong>Ajuste recomendado:</strong> ${dir} ${best.fd.name} de ${Math.round(best.old)} a ${Math.round(best.nq)} g en ${best.meal}.`,action:best};
+}
+function v82ApplyAdvice(date,a){const d=load(`mealSubs:${date}`,{});d[`${a.mi}:${a.fi}`]={replacement:`${Math.round(a.nq)} g ${a.fd.name}`,mode:'advice'};save(`mealSubs:${date}`,d);render();}
+function v7ObjectivePanel(day,date){
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date),ad=v82Advice(day,date);
+ const row=(n,k,u)=>`<div class="v7row ${v7Status(plan[k],t[k],k)}"><span>${n}</span><b>${Math.round(plan[k])} / ${t[k]} ${u} <em>${v82Delta(plan[k],t[k],k)}</em></b></div>`;
+ const states=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
+ const overall=states.includes('bad')?'bad':states.includes('warn')?'warn':'ok';
+ const msg=overall==='ok'?'Plan bien ajustado':overall==='warn'?'Plan aceptable, con algún desvío':'Plan a revisar';
+ const label=type==='training'?'fuerza':type==='cardio'?'cardio/LISS':'descanso';
+ window.__v82Advice=ad.action;
+ return `<section class="section"><div class="section-title"><h2>Plan del día</h2><span>${label}</span></div><div class="card v7panel">
+ <label class="field"><span>Tipo de día</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Fuerza</option><option value="cardio"${type==='cardio'?' selected':''}>Cardio / LISS</option><option value="rest"${type==='rest'?' selected':''}>Descanso</option></select></label>
+ <p class="note">Color = importancia de la desviación. ↑/↓ = si estás por encima o por debajo del objetivo. Los colores valoran el plan completo, no lo que llevas comido.</p>
+ ${row('Calorías','kcal','kcal')}${row('Proteína','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
+ <div class="v81summary ${overall}"><strong>${msg}</strong></div>
+ <div class="v82advice">${ad.html}${ad.action?'<button id="v82Apply" class="primary" type="button">Aplicar ajuste</button>':''}</div>
+ <button id="v7EditTargets" class="secondary" type="button">Editar objetivos</button></div></section>`;
+}
+function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
+function v73StickyBar(day,date){
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);const cls=k=>v7Status(plan[k],t[k],k);
+ return `<div class="v73sticky" id="v73Sticky"><span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal} ${v82Delta(plan.kcal,t.kcal,'kcal')}</span><span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p} ${v82Delta(plan.p,t.p,'p')}</span><span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c} ${v82Delta(plan.c,t.c,'c')}</span><span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f} ${v82Delta(plan.f,t.f,'f')}</span></div>`;
+}
+function renderToday(){
+ const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}${renderExtrasBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
+ bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();setTimeout(()=>openRebalanceModal(day,date),90);});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
+}
+function renderMeals(){
+ const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+ const day=state.selectedDay,date=nextDate(day),plan=planForDay(day),tot=dayTotals(day,date);
+ document.getElementById('content').innerHTML=`<section class="section"><div class="day-tabs">${days.map(d=>`<button class="${d===day?'primary':'secondary'}" data-day="${d}">${d}</button>`).join('')}</div></section><section class="section"><div class="section-title"><h2>${day.toUpperCase()}</h2><span>${date}</span></div><div class="card"><strong>≈ ${Math.round(tot.kcal)} kcal</strong><p class="note">P ${Math.round(tot.p)} g · HC ${Math.round(tot.c)} g · G ${Math.round(tot.f)} g</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
+ document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.selectedDay=b.dataset.day;render()});
+ bindMealActions(day,date);
+ const rb=document.getElementById('reset-day-menu'); if(rb) rb.onclick=()=>resetDayMenu(day,date);
+}
+function nextDate(day){
+ const target=DAYS.indexOf(day),d=new Date(),diff=(target-d.getDay()+7)%7;
+ d.setDate(d.getDate()+diff);return localISO(d);
+}
+function renderMeasurements(){
+ const arr=load('metrics',[]).slice().reverse();
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Nueva medición</h2><span>${localISO()}</span></div>
+ <div class="row"><label class="field"><span>Fecha</span><input id="mDate" class="input" type="date" value="${localISO()}"></label><label class="field"><span>Hora</span><input id="mTime" class="input" type="time" value="${new Date().toTimeString().slice(0,5)}"></label></div>
+ <div class="row"><label class="field"><span>Peso kg</span><input id="mWeight" class="input" inputmode="decimal"></label><label class="field"><span>Cintura cm</span><input id="mWaist" class="input" inputmode="decimal"></label></div>
+ <div class="row"><label class="field"><span>Grasa %</span><input id="mFat" class="input" inputmode="decimal"></label><label class="field"><span>Masa muscular kg</span><input id="mMuscle" class="input" inputmode="decimal"></label></div>
+ <button id="saveMetric" class="primary" style="width:100%">Guardar medición</button></div></section>
+ <section class="section"><div class="section-title"><h2>Últimas mediciones</h2><span>${arr.length}</span></div><div class="card">${arr.slice(0,12).map((m,i)=>`<div class="history-item"><strong>${m.date||''}${m.time?' · '+m.time:''}</strong><div class="note">${m.weight?m.weight+' kg':''}${m.waist?' · '+m.waist+' cm cintura':''}${m.bodyFat?' · '+m.bodyFat+'% grasa':''}${m.muscleMass?' · '+m.muscleMass+' kg músculo':''}</div></div>`).join('')||'<p class="note">Sin mediciones.</p>'}</div></section>`;
+ document.getElementById('saveMetric').onclick=()=>{const a=load('metrics',[]);a.push({date:mDate.value,time:mTime.value,weight:mWeight.value,waist:mWaist.value,bodyFat:mFat.value,muscleMass:mMuscle.value});a.sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time));save('metrics',a);render()};
+}
+function renderProgress(){
+ const arr=load('metrics',[]),first=arr[0]||{},last=arr[arr.length-1]||{};
+ const delta=(k,u)=>{const a=parseFloat(first[k]),b=parseFloat(last[k]);return Number.isFinite(a)&&Number.isFinite(b)?`${b-a>0?'+':''}${(b-a).toFixed(1)} ${u}`:'—'};
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Progreso corporal</h2><span>${arr.length} registros</span></div><div class="kpi-grid"><div class="kpi"><b>${last.weight||'—'}</b><span>kg</span></div><div class="kpi"><b>${last.waist||'—'}</b><span>cm cintura</span></div><div class="kpi"><b>${last.bodyFat||'—'}</b><span>% grasa</span></div></div></div></section><section class="section"><div class="card"><div class="section-title"><h2>Desde el inicio</h2><span>tendencia</span></div><div class="kpi-grid"><div class="kpi"><b>${delta('weight','kg')}</b><span>Peso</span></div><div class="kpi"><b>${delta('waist','cm')}</b><span>Cintura</span></div><div class="kpi"><b>${delta('bodyFat','pp')}</b><span>Grasa</span></div></div></div></section>`;
+}
+function renderFoods(){
+ const items=customFoods();
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">ALIMENTOS</div><h2>Mi base de datos</h2><p>Copia los valores tal como aparecen en la etiqueta. La app normaliza los datos y clasifica el alimento automáticamente.</p></div></section>
+ <section class="section"><div class="card"><div class="section-title"><h2>Nuevo alimento</h2><span>según etiqueta</span></div>
+ <label class="field"><span>Nombre</span><input id="cfName" class="input" placeholder="Ej. Yogur natural"></label>
+ <div class="row"><label class="field"><span>Cantidad de referencia</span><input id="cfRefQty" class="input" type="number" step="0.1" value="100"></label><label class="field"><span>Unidad</span><select id="cfUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label></div>
+ <p class="note">Ej.: si la etiqueta indica valores por 50 g, escribe 50 g. Si los indica por 250 ml, escribe 250 ml.</p>
+ <div class="row"><label class="field"><span>kcal</span><input id="cfKcal" class="input" type="number" step="0.1"></label><label class="field"><span>Proteína g</span><input id="cfP" class="input" type="number" step="0.1"></label></div>
+ <div class="row"><label class="field"><span>Hidratos g</span><input id="cfC" class="input" type="number" step="0.1"></label><label class="field"><span>Grasas g</span><input id="cfF" class="input" type="number" step="0.1"></label></div>
+ <input id="cfEdit" type="hidden"><button id="cfSave" class="primary" style="width:100%">Guardar alimento</button></div></section>
+ <section class="section"><div class="section-title"><h2>Mis alimentos</h2><span>${items.length}</span></div><div class="card">${items.length?items.map((x,i)=>{const q=Number(x.refQty)||100,u=x.refUnit||x.unit||'g',lk=x.labelKcal??x.kcal,lp=x.labelP??x.p,lc=x.labelC??x.c,lf=x.labelF??x.f,n=normalizedCustomFood(x);return `<div class="food"><div><strong>${x.name}</strong><small>${lk} kcal · P ${lp} · HC ${lc} · G ${lf} / ${q} ${u}</small><small>Clasificación automática: ${n.cat||classifyFood(n.name,n.kcal,n.p,n.c,n.f)}</small></div><div class="food-actions"><button class="tiny" data-cfedit="${i}">Editar</button><button class="tiny danger" data-cfdel="${i}">Eliminar</button></div></div>`}).join(''):'<p class="note">Aún no has añadido alimentos personalizados.</p>'}</div></section>`;
+ document.getElementById('cfSave').onclick=()=>{const name=cfName.value.trim(),refQty=Number(cfRefQty.value),vals=[cfKcal,cfP,cfC,cfF].map(e=>Number(e.value));if(!name||!Number.isFinite(refQty)||refQty<=0||vals.some(v=>!Number.isFinite(v)||v<0)){alert('Completa nombre, referencia, kcal y macros con valores válidos.');return;}const factor=100/refQty,cat=classifyFood(name,vals[0]*factor,vals[1]*factor,vals[2]*factor,vals[3]*factor);const a=customFoods(),obj={name,cat,refQty,refUnit:cfUnit.value,labelKcal:vals[0],labelP:vals[1],labelC:vals[2],labelF:vals[3],kcal:vals[0]*factor,p:vals[1]*factor,c:vals[2]*factor,f:vals[3]*factor,unit:cfUnit.value,normalized:true};const ix=cfEdit.value===''?-1:Number(cfEdit.value);if(ix>=0)a[ix]=obj;else a.push(obj);save('customFoodsV8',a);render();};
+ document.querySelectorAll('[data-cfedit]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfedit),x=customFoods()[i];cfName.value=x.name;cfRefQty.value=Number(x.refQty)||100;cfUnit.value=x.refUnit||x.unit||'g';cfKcal.value=x.labelKcal??x.kcal;cfP.value=x.labelP??x.p;cfC.value=x.labelC??x.c;cfF.value=x.labelF??x.f;cfEdit.value=i;window.scrollTo({top:0,behavior:'smooth'});});
+ document.querySelectorAll('[data-cfdel]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfdel),a=customFoods();if(confirm(`¿Eliminar ${a[i].name}?`)){a.splice(i,1);save('customFoodsV8',a);render();}});
+}
+function renderBackup(){
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V8.1</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ importBtn.onclick=()=>importFile.click();
+ importFile.onchange=()=>importBackup(importFile.files?.[0]);
+ exportBtn.onclick=exportBackup;
+}
+function exportBackup(){
+ const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'8.1',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+ backupStatus.textContent='Backup exportado.';
+}
+async function importBackup(file){
+ if(!file)return;
+ try{
+  const p=JSON.parse(await file.text());
+  if(p.storage&&typeof p.storage==='object'){
+   Object.entries(p.storage).forEach(([k,v])=>localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v)));
+   if(p.metrics)save('metrics',p.metrics);
+  }else{
