@@ -1,15 +1,15 @@
-window.JC_NUTRITION_VERSION='8.9.3';
+window.JC_NUTRITION_VERSION='9.0.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
 const BASE_MEALS={
- lunes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura o ensalada','35 g AOVE']]],
- martes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
- miércoles:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
- jueves:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g bacalao','300 g verdura','35 g AOVE']]],
- viernes:[['Desayuno postentreno',['2 huevos','100 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['200 g pechuga de pollo','35 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g melocotón','20 g pistachos']],['Cena',['250 g merluza','300 g verdura','35 g AOVE']]],
- sábado:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['250 g pechuga de pollo','20 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','150 g fruta','20 g pistachos']],['Cena',['300 g pescado','300 g ensalada','25 g AOVE']]],
- domingo:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','150 g fruta']],['Comida',['275 g pechuga de pollo','300 g verdura','20 g AOVE']],['Merienda',['250 g queso fresco batido 0%','100 g fruta','20 g nueces']],['Cena',['300 g pescado blanco','300 g ensalada','30 g AOVE']]]
+ lunes:[['Desayuno postentreno',['2 huevos','130 ml claras de huevo','25 g copos de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['100 g pechuga de pavo','100 g kiwi']],['Comida',['210 g pechuga de pollo','40 g arroz en crudo','300 g verdura','25 g AOVE']],['Merienda',['180 g queso fresco batido 0%','100 g melocotón','10 g pistachos']],['Cena',['220 g merluza','300 g verdura','30 g AOVE']]],
+ martes:[['Desayuno postentreno',['25 g copos de avena','25 g whey','250 ml bebida de almendras sin azúcar','100 g arándanos','10 g cacahuete en polvo']],['Media mañana',['2 huevos','100 g kiwi']],['Comida',['200 g ternera magra','170 g patata en crudo','300 g verdura','20 g AOVE']],['Merienda',['180 g queso fresco batido 0%','100 g melocotón','10 g pistachos']],['Cena',['300 g bacalao','300 g verdura','25 g AOVE']]],
+ miércoles:[['Desayuno postentreno',['3 huevos','90 ml claras de huevo','60 g aguacate','150 g fruta']],['Media mañana',['80 g pechuga de pavo','120 g Activia natural edulcorado','100 g kiwi']],['Comida',['180 g pavo plancha','60 g pasta en crudo','300 g verdura','20 g AOVE']],['Merienda',['200 g queso fresco batido 0%','100 g fresas','10 g nueces']],['Cena',['220 g dorada','300 g ensalada','20 g AOVE']]],
+ jueves:[['Desayuno postentreno',['2 huevos','120 ml claras de huevo','20 g salvado de avena','150 ml bebida de almendras sin azúcar','100 g arándanos']],['Media mañana',['90 g pechuga de pavo','100 g fruta']],['Comida',['180 g pechuga de pollo','200 g batata en crudo','300 g verdura','15 g AOVE']],['Merienda',['180 g queso fresco batido 0%','100 g melocotón','10 g almendras']],['Cena',['250 g salmón','300 g verdura','15 g AOVE']]],
+ viernes:[['Desayuno postentreno',['25 g copos de avena','25 g whey','250 ml bebida de almendras sin azúcar','100 g plátano','10 g cacahuete en polvo']],['Media mañana',['2 huevos','90 ml claras de huevo']],['Comida',['240 g cinta de lomo','25 g arroz en crudo','300 g verdura','20 g AOVE']],['Merienda',['180 g queso fresco batido 0%','100 g arándanos','10 g pistachos']],['Cena',['220 g merluza','50 g patata en crudo','300 g verdura','25 g AOVE']]],
+ sábado:[['Desayuno',['2 huevos','100 ml claras de huevo','60 g aguacate','100 g fruta']],['Comida',['260 g ternera magra','50 g patata en crudo','300 g verdura','20 g AOVE']],['Merienda',['220 g queso fresco batido 0%','100 g arándanos','10 g pistachos']],['Cena',['330 g bacalao','300 g ensalada','27 g AOVE']]],
+ domingo:[['Desayuno',['2 huevos','100 ml claras de huevo','20 g copos de avena','120 g fruta']],['Comida',['250 g pechuga de pollo','300 g verdura','30 g AOVE']],['Merienda',['220 g queso fresco batido 0%','100 g fruta','10 g nueces']],['Cena',['325 g dorada','300 g ensalada','27 g AOVE']]]
 };
 
 const DB=[
@@ -265,8 +265,8 @@ function migrateBasePlanV8(){
  if(localStorage.getItem('jcNutritionBasePlanVersion')==='8')return;
  const month=localISO().slice(0,7),plans=load('v9Plans',{});if(!plans[month])plans[month]={};plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));save('v9Plans',plans);localStorage.setItem('jcNutritionBasePlanVersion','8');
 }
-function migrateDiet14V89(){
- if(localStorage.getItem('jcNutritionDiet14Version')==='8.9.3')return;
+function migrateDiet15V90(){
+ if(localStorage.getItem('jcNutritionDiet15Version')==='9.0.0')return;
  const month=localISO().slice(0,7),plans=load('v9Plans',{}),date=localISO();
  if(!plans[month])plans[month]={};
  plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
@@ -276,7 +276,7 @@ function migrateDiet14V89(){
  // History, measurements, completed-meal marks and Extras are preserved.
  ['mealSubs:','v6MealOmit:','v6MealRedis:','v10MealAdds:','freeMeals:','skippedMeals:'].forEach(k=>localStorage.removeItem(k+date));
  localStorage.setItem('jcNutritionBasePlanVersion','8');
- localStorage.setItem('jcNutritionDiet14Version','8.9.3');
+ localStorage.setItem('jcNutritionDiet15Version','9.0.0');
 }
 function planForDay(day){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});
@@ -912,14 +912,14 @@ function renderFoods(){
  document.querySelectorAll('[data-cfdel]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfdel),a=customFoods();if(confirm(`¿Eliminar ${a[i].name}?`)){a.splice(i,1);save('customFoodsV8',a);render();}});
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V8.1</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V9.0</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
 }
 function exportBackup(){
  const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
- const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'8.1',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'9.0.0',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  backupStatus.textContent='Backup exportado.';
 }
@@ -1075,5 +1075,5 @@ document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{state.view=b.dataset
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 migrateBasePlanV6();
 migrateBasePlanV8();
-migrateDiet14V89();
+migrateDiet15V90();
 render();
