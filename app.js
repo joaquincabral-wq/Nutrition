@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.4.0';
+window.JC_NUTRITION_VERSION='9.5.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -24,7 +24,11 @@ const DB=[
  ['aove',['aove','aceite'],884,0,0,100],
  ['melon',['melón','melon'],34,.8,8.2,.2],
  ['qfb',['queso fresco batido'],46,8,4,.2],
- ['cottage',['queso cottage','cottage'],98,12.4,3,4.3],
+ ['cottage',['queso cottage','cottage'],93,13,1.6,4],
+ ['wasa',['wasa','pan wasa'],336,9,62,1.5],
+ ['lomo_pavo',['lomo de pavo'],215,40,.7,5.8],
+ ['jamon_curado',['jamón curado','jamon curado','jamón','jamon'],251,33.3,.5,12.8],
+ ['cecina',['cecina'],259,39,.8,12],
  ['melocoton',['melocotón','melocoton'],39,.9,9.5,.3],
  ['pistachos',['pistachos'],562,20,28,45],
  ['merluza',['merluza','pescado blanco'],86,18.5,0,1.8],
@@ -51,20 +55,25 @@ const DB=[
 
 
 const SMART_FOODS=[
- {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
- {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
- {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6},
- {name:'Ternera magra',cat:'proteina',kcal:170,p:24,c:0,f:8},
- {name:'Merluza',cat:'proteina',kcal:86,p:18.5,c:0,f:1.8},
- {name:'Bacalao',cat:'proteina',kcal:82,p:18,c:0,f:.7},
- {name:'Dorada',cat:'proteina',kcal:115,p:20,c:0,f:4},
- {name:'Salmón',cat:'proteina',kcal:208,p:20,c:0,f:13},
- {name:'Atún fresco',cat:'proteina',kcal:144,p:23,c:0,f:5},
- {name:'Gambas',cat:'proteina',kcal:99,p:24,c:.2,f:.3},
- {name:'Arroz en crudo',cat:'hidrato',kcal:360,p:7,c:80,f:.7},
- {name:'Patata en crudo',cat:'hidrato',kcal:77,p:2,c:17,f:.1},
- {name:'Batata en crudo',cat:'hidrato',kcal:86,p:1.6,c:20,f:.1},
- {name:'Avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
+ {name:'Huevo entero',cat:'proteina',kcal:143,p:12.6,c:.7,f:9.5,role:'protein_cook'},
+ {name:'Fruta',cat:'fruta',kcal:50,p:.6,c:12,f:.2},
+ {name:'Verdura',cat:'verdura',kcal:30,p:2,c:5,f:.3},
+ {name:'Ensalada',cat:'verdura',kcal:20,p:1,c:3,f:.2},
+ {name:'Cacahuete en polvo',cat:'grasa',kcal:380,p:46,c:35,f:12,role:'fat_topping'},
+ {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6,role:'protein_main'},
+ {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5,role:'protein_main'},
+ {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6,role:'protein_main'},
+ {name:'Ternera magra',cat:'proteina',kcal:170,p:24,c:0,f:8,role:'protein_main'},
+ {name:'Merluza',cat:'proteina',kcal:86,p:18.5,c:0,f:1.8,role:'protein_main'},
+ {name:'Bacalao',cat:'proteina',kcal:82,p:18,c:0,f:.7,role:'protein_main'},
+ {name:'Dorada',cat:'proteina',kcal:115,p:20,c:0,f:4,role:'protein_main'},
+ {name:'Salmón',cat:'proteina',kcal:208,p:20,c:0,f:13,role:'protein_main'},
+ {name:'Atún fresco',cat:'proteina',kcal:144,p:23,c:0,f:5,role:'protein_main'},
+ {name:'Gambas',cat:'proteina',kcal:99,p:24,c:.2,f:.3,role:'protein_main'},
+ {name:'Arroz en crudo',cat:'hidrato',kcal:360,p:7,c:80,f:.7,role:'carb_meal'},
+ {name:'Patata en crudo',cat:'hidrato',kcal:77,p:2,c:17,f:.1,role:'carb_meal'},
+ {name:'Batata en crudo',cat:'hidrato',kcal:86,p:1.6,c:20,f:.1,role:'carb_meal'},
+ {name:'Avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9,role:'carb_breakfast'},
  {name:'Melocotón',cat:'fruta',kcal:39,p:.9,c:9.5,f:.3},
  {name:'Sandía',cat:'fruta',kcal:30,p:.6,c:7.6,f:.2},
  {name:'Arándanos',cat:'fruta',kcal:57,p:.7,c:14.5,f:.3},
@@ -76,11 +85,11 @@ const SMART_FOODS=[
  {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
  {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
  {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
- {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
- {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0},
- {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2},
- {name:'Queso cottage',cat:'lacteo',kcal:98,p:12.4,c:3.0,f:4.3},
- {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4},
+ {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9,role:'carb_breakfast'},
+ {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0,role:'carb_breakfast'},
+ {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2,role:'protein_cold'},
+ {name:'Queso cottage',cat:'lacteo',kcal:93,p:13,c:1.6,f:4,role:'protein_cold'},
+ {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4,role:'dairy_snack'},
  {name:'Tomate natural',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
  {name:'Tomate cherry',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
  {name:'Lechuga',cat:'verdura',kcal:15,p:1.4,c:2.9,f:0.2},
@@ -97,15 +106,19 @@ const SMART_FOODS=[
  {name:'Manzana',cat:'fruta',kcal:52,p:0.3,c:13.8,f:0.2},
  {name:'Pera',cat:'fruta',kcal:57,p:0.4,c:15.2,f:0.1},
  {name:'Kiwi',cat:'fruta',kcal:61,p:1.1,c:14.7,f:0.5},
- {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
- {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
- {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2},
- {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5},
- {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1},
+ {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6,role:'protein_main'},
+ {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5,role:'protein_cold'},
+ {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2,role:'protein_cook'},
+ {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5,role:'carb_meal'},
+ {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1,role:'beverage'},
  {name:'Fresas',cat:'fruta',kcal:32,p:0.7,c:7.7,f:0.3},
  {name:'AOVE',cat:'grasa',kcal:884,p:0,c:0,f:100},
- {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5},
- {name:'Proteína en polvo',cat:'proteina',kcal:363.3,p:89,c:.33,f:1.33},
+ {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5,role:'carb_breakfast_snack'},
+ {name:'Proteína en polvo',cat:'proteina',kcal:363.3,p:89,c:.33,f:1.33,role:'protein_powder'},
+ {name:'Pan Wasa Original',cat:'hidrato',kcal:336,p:9,c:62,f:1.5,role:'carb_snack',pieceGrams:11.4},
+ {name:'Lomo de pavo Mercadona',cat:'proteina',kcal:215,p:40,c:.7,f:5.8,role:'protein_cold'},
+ {name:'Jamón curado 14 meses',cat:'proteina',kcal:251,p:33.3,c:.5,f:12.8,role:'protein_cold'},
+ {name:'Cecina de vacuno',cat:'proteina',kcal:259,p:39,c:.8,f:12,role:'protein_cold'},
  {name:'Pistachos',cat:'grasa',kcal:562,p:20.3,c:27.5,f:45.4},
  {name:'Almendras',cat:'grasa',kcal:579,p:21.2,c:21.6,f:49.9},
  {name:'Nueces',cat:'grasa',kcal:654,p:15.2,c:13.7,f:65.2},
@@ -173,6 +186,15 @@ function smartFoodFromText(text){
   ['Manzana',['manzana']],
   ['Pera',['pera']],
   ['Kiwi',['kiwi']],
+  ['Pan Wasa Original',['pan wasa','wasa']],
+  ['Lomo de pavo Mercadona',['lomo de pavo']],
+  ['Jamón curado 14 meses',['jamón curado','jamon curado']],
+  ['Cecina de vacuno',['cecina']],
+  ['Huevo entero',['huevos','huevo']],
+  ['Fruta',[' fruta']],
+  ['Verdura',['verdura']],
+  ['Ensalada',['ensalada']],
+  ['Cacahuete en polvo',['cacahuete en polvo']],
   ['Pechuga de pollo',['pechuga de pollo']],
   ['Pechuga de pavo',['pechuga de pavo']],
   ['Claras de huevo',['claras']],
@@ -269,7 +291,7 @@ function migrateBasePlanV8(){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});if(!plans[month])plans[month]={};plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));save('v9Plans',plans);localStorage.setItem('jcNutritionBasePlanVersion','8');
 }
 function migrateDiet15V90(){
- if(localStorage.getItem('jcNutritionDiet15Version')==='9.4.0')return;
+ if(localStorage.getItem('jcNutritionDiet15Version')==='9.5.0')return;
  const month=localISO().slice(0,7),plans=load('v9Plans',{}),date=localISO();
  if(!plans[month])plans[month]={};
  plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
@@ -279,7 +301,7 @@ function migrateDiet15V90(){
  // History, measurements, completed-meal marks and Extras are preserved.
  ['mealSubs:','v6MealOmit:','v6MealRedis:','v10MealAdds:','freeMeals:','skippedMeals:'].forEach(k=>localStorage.removeItem(k+date));
  localStorage.setItem('jcNutritionBasePlanVersion','8');
- localStorage.setItem('jcNutritionDiet15Version','9.4.0');
+ localStorage.setItem('jcNutritionDiet15Version','9.5.0');
 }
 function planForDay(day){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});
@@ -430,7 +452,7 @@ function v85Kind(text){
  if(/aove|aceite|pistacho|nuec|aguacate/.test(t)) return 'fat';
  if(/arroz|patata|batata|pasta|avena|crema de arroz|pan|wasa/.test(t)) return 'carb';
  if(/melocot|manzana|pera|plátano|platano|arándan|arandan|fresa|framb|mora|sandía|sandia|melón|melon|naranja|kiwi|ciruela/.test(t)) return 'fruit';
- if(/pollo|pavo|ternera|lomo|merluza|bacalao|dorada|salm|atún|atun|gamba|huevo|claras|queso fresco batido|activia|whey/.test(t)) return 'protein';
+ if(/pollo|pavo|ternera|lomo|merluza|bacalao|dorada|salm|atún|atun|gamba|huevo|claras|queso fresco batido|cottage|activia|whey|proteína en polvo|proteina en polvo|cecina|jamón|jamon/.test(t)) return 'protein';
  if(/verdura|ensalada|tomate|lechuga|pepino|calabac|berenjena|brócoli|brocoli|coliflor|espárrag|esparrag|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria/.test(t)) return 'veg';
  return 'other';
 }
@@ -691,11 +713,50 @@ function closeFoodModal(){
 function foodOptions(list,selected=''){
  return list.map(x=>`<option value="${x.name}" ${x.name===selected?'selected':''}>${x.name}</option>`).join('');
 }
+function mealContextLabel(day,mi){
+ const plan=planForDay(day);
+ return String(plan?.[mi]?.[0]||'').toLowerCase();
+}
+function changeOptionsForContext(src,mealLabel,currentText){
+ const catalog=allFoodCatalog().filter(x=>x.cat!=='rodilla');
+ if(!src) return catalog;
+ const label=String(mealLabel||'').toLowerCase();
+ const text=String(currentText||'').toLowerCase();
+ const isSnack=label.includes('media mañana')||label.includes('merienda');
+ const isBreakfast=label.includes('desayuno');
+ const isMain=label.includes('comida')||label.includes('cena');
+
+ if(src.cat==='fruta') return catalog.filter(x=>x.cat==='fruta');
+ if(src.cat==='verdura') return catalog.filter(x=>x.cat==='verdura');
+ if(src.cat==='grasa') return catalog.filter(x=>x.cat==='grasa');
+
+ if(src.cat==='hidrato') {
+  if(isSnack) return catalog.filter(x=>x.cat==='hidrato'&&['carb_snack','carb_breakfast_snack'].includes(x.role));
+  if(isBreakfast) return catalog.filter(x=>x.cat==='hidrato'&&['carb_breakfast','carb_breakfast_snack','carb_snack'].includes(x.role));
+  if(isMain) return catalog.filter(x=>x.cat==='hidrato'&&['carb_meal','carb_snack'].includes(x.role));
+  return catalog.filter(x=>x.cat==='hidrato');
+ }
+
+ if(src.cat==='lacteo') {
+  if(src.role==='beverage'||text.includes('bebida de almendras')) return catalog.filter(x=>x.role==='beverage');
+  if(isSnack) return catalog.filter(x=>['protein_cold','dairy_snack'].includes(x.role));
+  return catalog.filter(x=>x.cat==='lacteo');
+ }
+
+ if(src.cat==='proteina') {
+  if(isSnack) return catalog.filter(x=>['protein_cold','protein_powder'].includes(x.role));
+  if(isBreakfast) return catalog.filter(x=>['protein_cold','protein_powder','protein_cook'].includes(x.role)||['Pollo','Pavo plancha','Pechuga de pollo'].includes(x.name));
+  if(isMain) return catalog.filter(x=>x.role==='protein_main'||x.role==='protein_cook');
+  return catalog.filter(x=>x.cat==='proteina');
+ }
+ return catalog.filter(x=>x.cat===src.cat);
+}
 function openFoodChangeModal(day,date,mi,fi,currentText){
  closeFoodModal();
  const src=smartFoodFromText(currentText);
  const catalog=allFoodCatalog();
- const options=src?catalog.filter(x=>x.cat===src.cat):catalog;
+ const mealLabel=mealContextLabel(day,mi);
+ const options=changeOptionsForContext(src,mealLabel,currentText);
  const targetDefault=options.find(x=>x.name!==src?.name)||options[0];
  const suggested=src&&targetDefault?equivalentQty(currentText,targetDefault):(parseQty(currentText)||'');
 
@@ -704,7 +765,7 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
  modal.className='modal';
  modal.innerHTML=`<div class="sheet">
   <div class="section-title"><h2>Cambiar alimento</h2><button id="fmClose" class="tiny">Cerrar</button></div>
-  <p class="note">Original: <strong>${currentText}</strong></p>
+  <p class="note">Original: <strong>${currentText}</strong></p><p class="note">Opciones filtradas para ${mealLabel||'esta comida'} y el mismo grupo nutricional.</p>
   <label class="field"><span>Alimento nuevo</span><select id="fmFood" class="input">${foodOptions(options,targetDefault?.name)}</select></label>
   <div class="row">
    <label class="field"><span>Cantidad</span><input id="fmQty" class="input" type="number" inputmode="decimal" value="${suggested||''}"></label>
@@ -727,7 +788,9 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
   const amount=Number(qty.value);
   const original=macros(currentText);
   const replacement=target&&Number.isFinite(amount)?{kcal:target.kcal*amount/100,p:target.p*amount/100,c:target.c*amount/100,f:target.f*amount/100}:null;
-  const suggestion=q?`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}</strong>`:'<strong>Sin equivalencia automática fiable.</strong>';
+  const pieces=target?.pieceGrams&&q?Math.max(1,Math.round(q/target.pieceGrams)):null;
+  const pieceNote=pieces?` · ≈ ${pieces} rebanada${pieces===1?'':'s'}`:'';
+  const suggestion=q?`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}${pieceNote}</strong>`:'<strong>Sin equivalencia automática fiable.</strong>';
   if(replacement){
    eq.innerHTML=`${suggestion}<div class="macro-compare"><div><span>Original</span><strong>${Math.round(original.kcal)} kcal</strong><small>P ${original.p.toFixed(1)} · HC ${original.c.toFixed(1)} · G ${original.f.toFixed(1)}</small></div><div><span>Sustitución</span><strong>${Math.round(replacement.kcal)} kcal</strong><small>P ${replacement.p.toFixed(1)} · HC ${replacement.c.toFixed(1)} · G ${replacement.f.toFixed(1)}</small></div></div><p class="note">La comparación se actualiza al cambiar la cantidad.</p>`;
   }else eq.innerHTML=`${suggestion}<p class="note">Introduce la cantidad manualmente.</p>`;
@@ -915,14 +978,14 @@ function renderFoods(){
  document.querySelectorAll('[data-cfdel]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfdel),a=customFoods();if(confirm(`¿Eliminar ${a[i].name}?`)){a.splice(i,1);save('customFoodsV8',a);render();}});
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V9.4</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V9.5</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
 }
 function exportBackup(){
  const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
- const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'9.0.0',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'9.5.0',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  backupStatus.textContent='Backup exportado.';
 }

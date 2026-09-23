@@ -1,12 +1,15 @@
-JC Nutrition V9.4 · Dieta 15
+JC Nutrition V9.5 · Dieta 15
 
-Cambios V9.4:
-- Queso cottage incorporado en dos meriendas semanales para aumentar variedad.
-- Crema de arroz ProCao + proteína en polvo incorporadas en las meriendas de martes y viernes.
-- Se mantienen los valores reales de ProCao y de la proteína en polvo facilitados por el usuario.
-- Media mañana y merienda siguen sin incluir claras ni exigir cocinar en ese momento; la crema de arroz puede dejarse preparada.
-- Se reajustan hidratos y AOVE del resto del día para compensar las nuevas meriendas.
-- Pan Wasa no se incorpora todavía al menú base: es compatible con definición, pero se deja pendiente de introducir sus valores nutricionales exactos de la variedad concreta.
-- Se mantienen objetivos, histórico, medidas, sustituciones, extras y backup.
-
-Nota: queso cottage usa valores genéricos de referencia (98 kcal, 12,4 P, 3 HC, 4,3 G por 100 g) hasta disponer de la etiqueta del producto concreto.
+Cambios V9.5:
+- Botón «Cambiar» contextual: solo muestra sustituciones del mismo grupo nutricional y coherentes con el momento del día.
+- Proteínas principales (comida/cena): carnes, pescados y otras proteínas principales; no aparecen frutas, verduras, hidratos ni proteína en polvo.
+- Media mañana/merienda: prioriza opciones frías y sin cocina; no propone claras.
+- Hidratos: desayuno, comida/cena y snacks tienen alternativas propias.
+- Bebida de almendras ya no se mezcla con quesos/yogures al cambiar.
+- Pan Wasa Original incorporado con etiqueta real: 336 kcal, 9 P, 62 HC, 1,5 G por 100 g; 11,4 g por rebanada.
+- Queso cottage Mercadona actualizado con etiqueta real: 93 kcal, 13 P, 1,6 HC, 4 G por 100 g.
+- Lomo de pavo Mercadona: 215 kcal, 40 P, 0,7 HC, 5,8 G por 100 g.
+- Jamón curado 14 meses: 251 kcal, 33,3 P, 0,5 HC, 12,8 G por 100 g.
+- Cecina de vacuno: 259 kcal, 39 P, 0,8 HC, 12 G por 100 g.
+- Wasa muestra además una aproximación en número de rebanadas al proponer equivalencia.
+- Se mantienen Dieta 15, objetivos, histórico, medidas, extras, equivalencias y backup.
