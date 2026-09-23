@@ -1,12 +1,10 @@
-JC Nutrition V9.0 · Dieta 15 — menú semanal variado
+JC Nutrition V9.3 · Dieta 15
 
-Cambios principales:
-- Sustituida Dieta 14 por Dieta 15 con menús distintos cada día.
-- Se mantienen los objetivos: fuerza 2050 kcal / 180 P / 130 HC / 90 G; cardio 1950 / 180 / 100 / 92; descanso 1900 / 180 / 75 HC / 98 G.
-- Lunes a viernes: variedad real de desayunos, comidas, meriendas y cenas.
-- Proteínas rotadas: pollo, pavo, ternera, cinta de lomo, merluza, bacalao, dorada y salmón.
-- Hidratos rotados: arroz, pasta, patata, batata y avena.
-- Los siete días se han ajustado con la misma base nutricional de la app para mantenerse próximos a sus objetivos.
-- La migración V9.0 actualiza el plan del mes a Dieta 15 y limpia únicamente ajustes antiguos del día actual, conservando histórico, medidas, comidas marcadas y Extras.
-- Se mantienen equivalencias inteligentes, comidas libres, Extras, báscula, medidas, progreso y backup.
-- Cache PWA actualizada a V9.0.0.
+Cambios V9.3:
+- Crema de arroz ProCao Dubai incorporada con valores reales: 352 kcal, 8,8 P, 74 HC y 1,5 G por 100 g.
+- Proteína en polvo actualizada con los valores de la etiqueta: 363,3 kcal, 89 P, 0,33 HC y 1,33 G por 100 g (109 kcal y 26,7 P por 30 g).
+- Crema de arroz incluida en desayunos postentreno de martes y viernes.
+- Proteína en polvo mantenida en martes, viernes y sábado.
+- Parte de los hidratos se redistribuye hacia la cena lunes, miércoles, jueves y domingo, sin añadirlos encima del plan.
+- Media mañana y merienda siguen sin requerir cocinar; no se usan claras en esas tomas.
+- Se mantienen objetivos, histórico, medidas, sustituciones, extras y backup.
