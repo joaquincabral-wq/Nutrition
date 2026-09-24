@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.6.0';
+window.JC_NUTRITION_VERSION='9.7.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -291,7 +291,7 @@ function migrateBasePlanV8(){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});if(!plans[month])plans[month]={};plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));save('v9Plans',plans);localStorage.setItem('jcNutritionBasePlanVersion','8');
 }
 function migrateDiet15V90(){
- if(localStorage.getItem('jcNutritionDiet15Version')==='9.6.0')return;
+ if(localStorage.getItem('jcNutritionDiet15Version')==='9.7.0')return;
  const month=localISO().slice(0,7),plans=load('v9Plans',{}),date=localISO();
  if(!plans[month])plans[month]={};
  plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
@@ -301,7 +301,7 @@ function migrateDiet15V90(){
  // History, measurements, completed-meal marks and Extras are preserved.
  ['mealSubs:','v6MealOmit:','v6MealRedis:','v10MealAdds:','freeMeals:','skippedMeals:'].forEach(k=>localStorage.removeItem(k+date));
  localStorage.setItem('jcNutritionBasePlanVersion','8');
- localStorage.setItem('jcNutritionDiet15Version','9.6.0');
+ localStorage.setItem('jcNutritionDiet15Version','9.7.0');
 }
 function planForDay(day){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});
@@ -684,6 +684,7 @@ function macroBlock(day,date){
   <div class="kpi-grid"><div class="kpi"><b>${money(cons.kcal)}</b><span>kcal consumidas</span></div><div class="kpi"><b>${money(left('kcal'))}</b><span>kcal pendientes</span></div><div class="kpi"><b>${money(goal.kcal)}</b><span>objetivo</span></div></div>
   <div class="v7remain"><b>Consumido:</b><br>${Math.round(cons.kcal)} kcal · ${Math.round(cons.p)} P · ${Math.round(cons.c)} HC · ${Math.round(cons.f)} G</div>
   <div class="v7remain"><b>Pendiente según objetivo:</b><br>${Math.round(left('kcal'))} kcal · ${Math.round(left('p'))} P · ${Math.round(left('c'))} HC · ${Math.round(left('f'))} G</div>
+  ${bar('Proteína consumida',cons.p,goal.p,'g')}${bar('Hidratos consumidos',cons.c,goal.c,'g')}${bar('Grasas consumidas',cons.f,goal.f,'g')}
   <p class="note">Lo pendiente es margen respecto al objetivo, no una obligación de consumirlo íntegramente.</p>
  </div></section>`;
 }
@@ -927,8 +928,8 @@ function v7ObjectivePanel(day,date){
 }
 function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
 function v73StickyBar(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);const cls=k=>v7Status(plan[k],t[k],k);
- return `<div class="v73sticky" id="v73Sticky"><span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal} ${v82Delta(plan.kcal,t.kcal,'kcal')}</span><span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p} ${v82Delta(plan.p,t.p,'p')}</span><span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c} ${v82Delta(plan.c,t.c,'c')}</span><span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f} ${v82Delta(plan.f,t.f,'f')}</span></div>`;
+ const type=v7Type(day,date),t=v7Targets()[type],cons=consumedTotals(day,date);
+ return `<div class="v73sticky" id="v73Sticky"><span>🔥 ${Math.round(cons.kcal)}/${t.kcal}</span><span>P ${Math.round(cons.p)}/${t.p}</span><span>HC ${Math.round(cons.c)}/${t.c}</span><span>G ${Math.round(cons.f)}/${t.f}</span></div>`;
 }
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
@@ -978,14 +979,14 @@ function renderFoods(){
  document.querySelectorAll('[data-cfdel]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfdel),a=customFoods();if(confirm(`¿Eliminar ${a[i].name}?`)){a.splice(i,1);save('customFoodsV8',a);render();}});
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V9.6</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V9.7</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
 }
 function exportBackup(){
  const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
- const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'9.6.0',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'9.7.0',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  backupStatus.textContent='Backup exportado.';
 }

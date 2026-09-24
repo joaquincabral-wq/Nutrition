@@ -1,4 +1,10 @@
-JC Nutrition V9.6 · Dieta 15
+JC Nutrition V9.7 · Dieta 15
+
+Cambios V9.7:
+- La barra superior de kcal y macros muestra ahora CONSUMIDO / OBJETIVO, no el total planificado.
+- Al marcar o desmarcar una comida, kcal, proteína, hidratos y grasas cambian inmediatamente.
+- Añadidas barras de progreso de proteína, hidratos y grasas consumidos.
+- Se mantiene el bloque Plan del día para comprobar por separado los macros totales planificados.
 
 Cambios V9.6:
 - Añadido en la pestaña Comidas el contador de kcal/macros consumidos según se marcan las comidas como realizadas.
