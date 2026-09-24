@@ -1,6 +1,11 @@
-JC Nutrition V9.5 · Dieta 15
+JC Nutrition V9.6 · Dieta 15
 
-Cambios V9.5:
+Cambios V9.6:
+- Añadido en la pestaña Comidas el contador de kcal/macros consumidos según se marcan las comidas como realizadas.
+- Muestra kcal consumidas, kcal pendientes y objetivo, además de P/HC/G consumidos y pendientes.
+- El contador se actualiza inmediatamente al marcar o desmarcar una comida.
+
+Cambios heredados de V9.5:
 - Botón «Cambiar» contextual: solo muestra sustituciones del mismo grupo nutricional y coherentes con el momento del día.
 - Proteínas principales (comida/cena): carnes, pescados y otras proteínas principales; no aparecen frutas, verduras, hidratos ni proteína en polvo.
 - Media mañana/merienda: prioriza opciones frías y sin cocina; no propone claras.
