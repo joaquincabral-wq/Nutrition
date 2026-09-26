@@ -13,3 +13,5 @@ Cambios principales:
 - Cache PWA actualizada a V9.9.0.
 
 V9.9.1: anadido acceso directo a JC Training desde la navegacion inferior.
+
+V9.9.2: nuevo icono JC Nutrition (manzana verde + JC) en tamaños 192, 512 y Apple Touch.
