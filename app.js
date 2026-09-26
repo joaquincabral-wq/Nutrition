@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='8.11.0';
+window.JC_NUTRITION_VERSION='9.9.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -14,16 +14,22 @@ const BASE_MEALS={
 
 const DB=[
  ['avena',['avena'],389,16.9,66.3,6.9],
- ['whey',['whey','proteina en polvo','proteína en polvo'],390,78,8,6],
+ ['whey',['whey','proteina en polvo','proteína en polvo'],363.3,89,0.33,1.33],
  ['arandanos',['arándanos','arandanos'],57,.7,14.5,.3],
  ['bebida_almendras',['bebida de almendras'],15,.5,.3,1.1],
  ['pollo',['pollo','pollo/pavo'],120,23,0,2.6],
  ['pavo',['pavo'],115,24,0,1.5],
  ['arroz',['arroz'],360,7,80,.7],
+ ['pan_integral',['pan integral'],262,12,44,3.3],
  ['verduras',['verduras','verdura'],30,2,5,.3],
  ['aove',['aove','aceite'],884,0,0,100],
  ['melon',['melón','melon'],34,.8,8.2,.2],
  ['qfb',['queso fresco batido'],46,8,4,.2],
+ ['cottage',['queso cottage','cottage'],93,13,1.6,4],
+ ['wasa',['wasa','pan wasa'],336,9,62,1.5],
+ ['lomo_pavo',['lomo de pavo'],215,40,.7,5.8],
+ ['jamon_curado',['jamón curado','jamon curado','jamón','jamon'],251,33.3,.5,12.8],
+ ['cecina',['cecina'],259,39,.8,12],
  ['melocoton',['melocotón','melocoton'],39,.9,9.5,.3],
  ['pistachos',['pistachos'],562,20,28,45],
  ['merluza',['merluza','pescado blanco'],86,18.5,0,1.8],
@@ -50,20 +56,25 @@ const DB=[
 
 
 const SMART_FOODS=[
- {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
- {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
- {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6},
- {name:'Ternera magra',cat:'proteina',kcal:170,p:24,c:0,f:8},
- {name:'Merluza',cat:'proteina',kcal:86,p:18.5,c:0,f:1.8},
- {name:'Bacalao',cat:'proteina',kcal:82,p:18,c:0,f:.7},
- {name:'Dorada',cat:'proteina',kcal:115,p:20,c:0,f:4},
- {name:'Salmón',cat:'proteina',kcal:208,p:20,c:0,f:13},
- {name:'Atún fresco',cat:'proteina',kcal:144,p:23,c:0,f:5},
- {name:'Gambas',cat:'proteina',kcal:99,p:24,c:.2,f:.3},
- {name:'Arroz en crudo',cat:'hidrato',kcal:360,p:7,c:80,f:.7},
- {name:'Patata en crudo',cat:'hidrato',kcal:77,p:2,c:17,f:.1},
- {name:'Batata en crudo',cat:'hidrato',kcal:86,p:1.6,c:20,f:.1},
- {name:'Avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
+ {name:'Huevo entero',cat:'proteina',kcal:143,p:12.6,c:.7,f:9.5,role:'protein_cook'},
+ {name:'Fruta',cat:'fruta',kcal:50,p:.6,c:12,f:.2},
+ {name:'Verdura',cat:'verdura',kcal:30,p:2,c:5,f:.3},
+ {name:'Ensalada',cat:'verdura',kcal:20,p:1,c:3,f:.2},
+ {name:'Cacahuete en polvo',cat:'grasa',kcal:380,p:46,c:35,f:12,role:'fat_topping'},
+ {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6,role:'protein_main'},
+ {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5,role:'protein_main'},
+ {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6,role:'protein_main'},
+ {name:'Ternera magra',cat:'proteina',kcal:170,p:24,c:0,f:8,role:'protein_main'},
+ {name:'Merluza',cat:'proteina',kcal:86,p:18.5,c:0,f:1.8,role:'protein_main'},
+ {name:'Bacalao',cat:'proteina',kcal:82,p:18,c:0,f:.7,role:'protein_main'},
+ {name:'Dorada',cat:'proteina',kcal:115,p:20,c:0,f:4,role:'protein_main'},
+ {name:'Salmón',cat:'proteina',kcal:208,p:20,c:0,f:13,role:'protein_main'},
+ {name:'Atún fresco',cat:'proteina',kcal:144,p:23,c:0,f:5,role:'protein_main'},
+ {name:'Gambas',cat:'proteina',kcal:99,p:24,c:.2,f:.3,role:'protein_main'},
+ {name:'Arroz en crudo',cat:'hidrato',kcal:360,p:7,c:80,f:.7,role:'carb_meal'},
+ {name:'Patata en crudo',cat:'hidrato',kcal:77,p:2,c:17,f:.1,role:'carb_meal'},
+ {name:'Batata en crudo',cat:'hidrato',kcal:86,p:1.6,c:20,f:.1,role:'carb_meal'},
+ {name:'Avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9,role:'carb_breakfast'},
  {name:'Melocotón',cat:'fruta',kcal:39,p:.9,c:9.5,f:.3},
  {name:'Sandía',cat:'fruta',kcal:30,p:.6,c:7.6,f:.2},
  {name:'Arándanos',cat:'fruta',kcal:57,p:.7,c:14.5,f:.3},
@@ -75,10 +86,11 @@ const SMART_FOODS=[
  {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
  {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
  {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
- {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9},
- {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0},
- {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2},
- {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4},
+ {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9,role:'carb_breakfast'},
+ {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0,role:'carb_breakfast'},
+ {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2,role:'protein_cold'},
+ {name:'Queso cottage',cat:'lacteo',kcal:93,p:13,c:1.6,f:4,role:'protein_cold'},
+ {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4,role:'dairy_snack'},
  {name:'Tomate natural',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
  {name:'Tomate cherry',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
  {name:'Lechuga',cat:'verdura',kcal:15,p:1.4,c:2.9,f:0.2},
@@ -95,14 +107,20 @@ const SMART_FOODS=[
  {name:'Manzana',cat:'fruta',kcal:52,p:0.3,c:13.8,f:0.2},
  {name:'Pera',cat:'fruta',kcal:57,p:0.4,c:15.2,f:0.1},
  {name:'Kiwi',cat:'fruta',kcal:61,p:1.1,c:14.7,f:0.5},
- {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6},
- {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5},
- {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2},
- {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5},
- {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1},
+ {name:'Pechuga de pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6,role:'protein_main'},
+ {name:'Pechuga de pavo',cat:'proteina',kcal:115,p:24,c:0,f:1.5,role:'protein_cold'},
+ {name:'Claras de huevo',cat:'proteina',kcal:46,p:10.5,c:0.7,f:0.2,role:'protein_cook'},
+ {name:'Pasta en crudo',cat:'hidrato',kcal:350,p:12,c:72,f:1.5,role:'carb_meal'},
+ {name:'Bebida de almendras sin azúcar',cat:'lacteo',kcal:13,p:0.4,c:0.2,f:1.1,role:'beverage'},
  {name:'Fresas',cat:'fruta',kcal:32,p:0.7,c:7.7,f:0.3},
  {name:'AOVE',cat:'grasa',kcal:884,p:0,c:0,f:100},
- {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5},
+ {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5,role:'carb_breakfast_snack'},
+ {name:'Proteína en polvo',cat:'proteina',kcal:363.3,p:89,c:.33,f:1.33,role:'protein_powder'},
+ {name:'Pan Wasa Original',cat:'hidrato',kcal:336,p:9,c:62,f:1.5,role:'carb_snack',pieceGrams:11.4},
+ {name:'Pan integral',cat:'hidrato',kcal:262,p:12,c:44,f:3.3,role:'carb_snack'},
+ {name:'Lomo de pavo Mercadona',cat:'proteina',kcal:215,p:40,c:.7,f:5.8,role:'protein_cold'},
+ {name:'Jamón curado 14 meses',cat:'proteina',kcal:251,p:33.3,c:.5,f:12.8,role:'protein_cold'},
+ {name:'Cecina de vacuno',cat:'proteina',kcal:259,p:39,c:.8,f:12,role:'protein_cold'},
  {name:'Pistachos',cat:'grasa',kcal:562,p:20.3,c:27.5,f:45.4},
  {name:'Almendras',cat:'grasa',kcal:579,p:21.2,c:21.6,f:49.9},
  {name:'Nueces',cat:'grasa',kcal:654,p:15.2,c:13.7,f:65.2},
@@ -170,6 +188,16 @@ function smartFoodFromText(text){
   ['Manzana',['manzana']],
   ['Pera',['pera']],
   ['Kiwi',['kiwi']],
+  ['Pan integral',['pan integral']],
+  ['Pan Wasa Original',['pan wasa','wasa']],
+  ['Lomo de pavo Mercadona',['lomo de pavo']],
+  ['Jamón curado 14 meses',['jamón curado','jamon curado']],
+  ['Cecina de vacuno',['cecina']],
+  ['Huevo entero',['huevos','huevo']],
+  ['Fruta',[' fruta']],
+  ['Verdura',['verdura']],
+  ['Ensalada',['ensalada']],
+  ['Cacahuete en polvo',['cacahuete en polvo']],
   ['Pechuga de pollo',['pechuga de pollo']],
   ['Pechuga de pavo',['pechuga de pavo']],
   ['Claras de huevo',['claras']],
@@ -265,19 +293,19 @@ function migrateBasePlanV8(){
  if(localStorage.getItem('jcNutritionBasePlanVersion')==='8')return;
  const month=localISO().slice(0,7),plans=load('v9Plans',{});if(!plans[month])plans[month]={};plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));save('v9Plans',plans);localStorage.setItem('jcNutritionBasePlanVersion','8');
 }
-function migrateDiet14V89(){
- if(localStorage.getItem('jcNutritionDiet14Version')==='8.10.0')return;
+function migratePlan19V98(){
+ if(localStorage.getItem('jcNutritionPlan19Version')==='9.9.0')return;
  const month=localISO().slice(0,7),plans=load('v9Plans',{}),date=localISO();
  if(!plans[month])plans[month]={};
  plans[month].meals=JSON.parse(JSON.stringify(BASE_MEALS));
  save('v9Plans',plans);
  save('v7Targets',JSON.parse(JSON.stringify(V7_DEFAULT_TARGETS)));
- // Clear only today's stale plan edits from previous Dieta 14 builds.
- // History, measurements, completed-meal marks and Extras are preserved.
+ // Limpia solo ajustes del menu de hoy; conserva historico, medidas, comidas marcadas y Extras.
  ['mealSubs:','v6MealOmit:','v6MealRedis:','v10MealAdds:','freeMeals:','skippedMeals:'].forEach(k=>localStorage.removeItem(k+date));
  localStorage.setItem('jcNutritionBasePlanVersion','8');
- localStorage.setItem('jcNutritionDiet14Version','8.10.0');
+ localStorage.setItem('jcNutritionPlan19Version','9.9.0');
 }
+
 function planForDay(day){
  const month=localISO().slice(0,7),plans=load('v9Plans',{});
  return plans?.[month]?.meals?.[day] || BASE_MEALS[day];
@@ -427,7 +455,7 @@ function v85Kind(text){
  if(/aove|aceite|pistacho|nuec|aguacate/.test(t)) return 'fat';
  if(/arroz|patata|batata|pasta|avena|crema de arroz|pan|wasa/.test(t)) return 'carb';
  if(/melocot|manzana|pera|plátano|platano|arándan|arandan|fresa|framb|mora|sandía|sandia|melón|melon|naranja|kiwi|ciruela/.test(t)) return 'fruit';
- if(/pollo|pavo|ternera|lomo|merluza|bacalao|dorada|salm|atún|atun|gamba|huevo|claras|queso fresco batido|activia|whey/.test(t)) return 'protein';
+ if(/pollo|pavo|ternera|lomo|merluza|bacalao|dorada|salm|atún|atun|gamba|huevo|claras|queso fresco batido|cottage|activia|whey|proteína en polvo|proteina en polvo|cecina|jamón|jamon/.test(t)) return 'protein';
  if(/verdura|ensalada|tomate|lechuga|pepino|calabac|berenjena|brócoli|brocoli|coliflor|espárrag|esparrag|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria/.test(t)) return 'veg';
  return 'other';
 }
@@ -659,6 +687,7 @@ function macroBlock(day,date){
   <div class="kpi-grid"><div class="kpi"><b>${money(cons.kcal)}</b><span>kcal consumidas</span></div><div class="kpi"><b>${money(left('kcal'))}</b><span>kcal pendientes</span></div><div class="kpi"><b>${money(goal.kcal)}</b><span>objetivo</span></div></div>
   <div class="v7remain"><b>Consumido:</b><br>${Math.round(cons.kcal)} kcal · ${Math.round(cons.p)} P · ${Math.round(cons.c)} HC · ${Math.round(cons.f)} G</div>
   <div class="v7remain"><b>Pendiente según objetivo:</b><br>${Math.round(left('kcal'))} kcal · ${Math.round(left('p'))} P · ${Math.round(left('c'))} HC · ${Math.round(left('f'))} G</div>
+  ${bar('Proteína consumida',cons.p,goal.p,'g')}${bar('Hidratos consumidos',cons.c,goal.c,'g')}${bar('Grasas consumidas',cons.f,goal.f,'g')}
   <p class="note">Lo pendiente es margen respecto al objetivo, no una obligación de consumirlo íntegramente.</p>
  </div></section>`;
 }
@@ -688,11 +717,50 @@ function closeFoodModal(){
 function foodOptions(list,selected=''){
  return list.map(x=>`<option value="${x.name}" ${x.name===selected?'selected':''}>${x.name}</option>`).join('');
 }
+function mealContextLabel(day,mi){
+ const plan=planForDay(day);
+ return String(plan?.[mi]?.[0]||'').toLowerCase();
+}
+function changeOptionsForContext(src,mealLabel,currentText){
+ const catalog=allFoodCatalog().filter(x=>x.cat!=='rodilla');
+ if(!src) return catalog;
+ const label=String(mealLabel||'').toLowerCase();
+ const text=String(currentText||'').toLowerCase();
+ const isSnack=label.includes('media mañana')||label.includes('merienda');
+ const isBreakfast=label.includes('desayuno');
+ const isMain=label.includes('comida')||label.includes('cena');
+
+ if(src.cat==='fruta') return catalog.filter(x=>x.cat==='fruta');
+ if(src.cat==='verdura') return catalog.filter(x=>x.cat==='verdura');
+ if(src.cat==='grasa') return catalog.filter(x=>x.cat==='grasa');
+
+ if(src.cat==='hidrato') {
+  if(isSnack) return catalog.filter(x=>x.cat==='hidrato'&&['carb_snack','carb_breakfast_snack'].includes(x.role));
+  if(isBreakfast) return catalog.filter(x=>x.cat==='hidrato'&&['carb_breakfast','carb_breakfast_snack','carb_snack'].includes(x.role));
+  if(isMain) return catalog.filter(x=>x.cat==='hidrato'&&['carb_meal','carb_snack'].includes(x.role));
+  return catalog.filter(x=>x.cat==='hidrato');
+ }
+
+ if(src.cat==='lacteo') {
+  if(src.role==='beverage'||text.includes('bebida de almendras')) return catalog.filter(x=>x.role==='beverage');
+  if(isSnack) return catalog.filter(x=>['protein_cold','dairy_snack'].includes(x.role));
+  return catalog.filter(x=>x.cat==='lacteo');
+ }
+
+ if(src.cat==='proteina') {
+  if(isSnack) return catalog.filter(x=>['protein_cold','protein_powder'].includes(x.role));
+  if(isBreakfast) return catalog.filter(x=>['protein_cold','protein_powder','protein_cook'].includes(x.role)||['Pollo','Pavo plancha','Pechuga de pollo'].includes(x.name));
+  if(isMain) return catalog.filter(x=>x.role==='protein_main'||x.role==='protein_cook');
+  return catalog.filter(x=>x.cat==='proteina');
+ }
+ return catalog.filter(x=>x.cat===src.cat);
+}
 function openFoodChangeModal(day,date,mi,fi,currentText){
  closeFoodModal();
  const src=smartFoodFromText(currentText);
  const catalog=allFoodCatalog();
- const options=src?catalog.filter(x=>x.cat===src.cat):catalog;
+ const mealLabel=mealContextLabel(day,mi);
+ const options=changeOptionsForContext(src,mealLabel,currentText);
  const targetDefault=options.find(x=>x.name!==src?.name)||options[0];
  const suggested=src&&targetDefault?equivalentQty(currentText,targetDefault):(parseQty(currentText)||'');
 
@@ -701,7 +769,7 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
  modal.className='modal';
  modal.innerHTML=`<div class="sheet">
   <div class="section-title"><h2>Cambiar alimento</h2><button id="fmClose" class="tiny">Cerrar</button></div>
-  <p class="note">Original: <strong>${currentText}</strong></p>
+  <p class="note">Original: <strong>${currentText}</strong></p><p class="note">Opciones filtradas para ${mealLabel||'esta comida'} y el mismo grupo nutricional.</p>
   <label class="field"><span>Alimento nuevo</span><select id="fmFood" class="input">${foodOptions(options,targetDefault?.name)}</select></label>
   <div class="row">
    <label class="field"><span>Cantidad</span><input id="fmQty" class="input" type="number" inputmode="decimal" value="${suggested||''}"></label>
@@ -724,7 +792,9 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
   const amount=Number(qty.value);
   const original=macros(currentText);
   const replacement=target&&Number.isFinite(amount)?{kcal:target.kcal*amount/100,p:target.p*amount/100,c:target.c*amount/100,f:target.f*amount/100}:null;
-  const suggestion=q?`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}</strong>`:'<strong>Sin equivalencia automática fiable.</strong>';
+  const pieces=target?.pieceGrams&&q?Math.max(1,Math.round(q/target.pieceGrams)):null;
+  const pieceNote=pieces?` · ≈ ${pieces} rebanada${pieces===1?'':'s'}`:'';
+  const suggestion=q?`<strong>Equivalencia sugerida: ${q} ${unit.value} de ${target.name}${pieceNote}</strong>`:'<strong>Sin equivalencia automática fiable.</strong>';
   if(replacement){
    eq.innerHTML=`${suggestion}<div class="macro-compare"><div><span>Original</span><strong>${Math.round(original.kcal)} kcal</strong><small>P ${original.p.toFixed(1)} · HC ${original.c.toFixed(1)} · G ${original.f.toFixed(1)}</small></div><div><span>Sustitución</span><strong>${Math.round(replacement.kcal)} kcal</strong><small>P ${replacement.p.toFixed(1)} · HC ${replacement.c.toFixed(1)} · G ${replacement.f.toFixed(1)}</small></div></div><p class="note">La comparación se actualiza al cambiar la cantidad.</p>`;
   }else eq.innerHTML=`${suggestion}<p class="note">Introduce la cantidad manualmente.</p>`;
@@ -844,25 +914,26 @@ function v82Advice(day,date){
 }
 function v82ApplyAdvice(date,a){const d=load(`mealSubs:${date}`,{});d[`${a.mi}:${a.fi}`]={replacement:`${Math.round(a.nq)} g ${a.fd.name}`,mode:'advice'};save(`mealSubs:${date}`,d);render();}
 function v7ObjectivePanel(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date),ad=v82Advice(day,date);
- const row=(n,k,u)=>`<div class="v7row ${v7Status(plan[k],t[k],k)}"><span>${n}</span><b>${Math.round(plan[k])} / ${t[k]} ${u} <em>${v82Delta(plan[k],t[k],k)}</em></b></div>`;
- const states=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
- const overall=states.includes('bad')?'bad':states.includes('warn')?'warn':'ok';
- const msg=overall==='ok'?'Plan bien ajustado':overall==='warn'?'Plan aceptable, con algún desvío':'Plan a revisar';
- const label=type==='training_high'?'fuerza alta HC':type==='training'?'fuerza':type==='cardio'?'cardio/LISS':'descanso';
+ const type=v7Type(day,date),t=v7Targets()[type],cons=consumedTotals(day,date),plan=dayTotals(day,date),ad=v82Advice(day,date);
+ const progressClass=(v,t)=>v>t?'warn':'ok';
+ const row=(n,k,u)=>`<div class="v7row ${progressClass(cons[k],t[k])}"><span>${n}</span><b>${Math.round(cons[k])} / ${t[k]} ${u}</b></div>`;
+ const planStates=['kcal','p','c','f'].map(k=>v7Status(plan[k],t[k],k));
+ const planOverall=planStates.includes('bad')?'bad':planStates.includes('warn')?'warn':'ok';
+ const planMsg=planOverall==='ok'?'Plan previsto bien ajustado':planOverall==='warn'?'Plan previsto con algun desvio':'Plan previsto a revisar';
+ const label=type==='training_high'?'fuerza · HC alto':type==='training'?'fuerza':type==='cardio'?'cardio/LISS':'descanso';
  window.__v82Advice=ad.action;
- return `<section class="section"><div class="section-title"><h2>Plan del día</h2><span>${label}</span></div><div class="card v7panel">
- <label class="field"><span>Tipo de día</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Fuerza</option><option value="training_high"${type==='training_high'?' selected':''}>Fuerza · HC alto</option><option value="cardio"${type==='cardio'?' selected':''}>Cardio / LISS</option><option value="rest"${type==='rest'?' selected':''}>Descanso</option></select></label>
- <p class="note">Color = importancia de la desviación. ↑/↓ = si estás por encima o por debajo del objetivo. Los colores valoran el plan completo, no lo que llevas comido.</p>
- ${row('Calorías','kcal','kcal')}${row('Proteína','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
- <div class="v81summary ${overall}"><strong>${msg}</strong></div>
+ return `<section class="section"><div class="section-title"><h2>Objetivo del dia</h2><span>${label}</span></div><div class="card v7panel">
+ <label class="field"><span>Tipo de dia</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Fuerza</option><option value="training_high"${type==='training_high'?' selected':''}>Fuerza · HC alto</option><option value="cardio"${type==='cardio'?' selected':''}>Cardio / LISS</option><option value="rest"${type==='rest'?' selected':''}>Descanso</option></select></label>
+ <p class="note">Cada fila muestra <strong>consumido / objetivo</strong>. Solo suma comidas marcadas como realizadas y Extras registrados.</p>
+ ${row('Calorias','kcal','kcal')}${row('Proteina','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
+ <div class="v81summary ${planOverall}"><strong>${planMsg}</strong><div class="note" style="margin-top:6px">Plan completo: ${Math.round(plan.kcal)} kcal · P ${Math.round(plan.p)} · HC ${Math.round(plan.c)} · G ${Math.round(plan.f)}</div></div>
  <div class="v82advice">${ad.html}${ad.action?'<button id="v82Apply" class="primary" type="button">Aplicar ajuste</button>':''}</div>
  <button id="v7EditTargets" class="secondary" type="button">Editar objetivos</button></div></section>`;
 }
 function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
 function v73StickyBar(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);const cls=k=>v7Status(plan[k],t[k],k);
- return `<div class="v73sticky" id="v73Sticky"><span class="${cls('kcal')}">🔥 ${Math.round(plan.kcal)}/${t.kcal} ${v82Delta(plan.kcal,t.kcal,'kcal')}</span><span class="${cls('p')}">P ${Math.round(plan.p)}/${t.p} ${v82Delta(plan.p,t.p,'p')}</span><span class="${cls('c')}">HC ${Math.round(plan.c)}/${t.c} ${v82Delta(plan.c,t.c,'c')}</span><span class="${cls('f')}">G ${Math.round(plan.f)}/${t.f} ${v82Delta(plan.f,t.f,'f')}</span></div>`;
+ const type=v7Type(day,date),t=v7Targets()[type],cons=consumedTotals(day,date);
+ return `<div class="v73sticky" id="v73Sticky"><span>🔥 ${Math.round(cons.kcal)}/${t.kcal}</span><span>P ${Math.round(cons.p)}/${t.p}</span><span>HC ${Math.round(cons.c)}/${t.c}</span><span>G ${Math.round(cons.f)}/${t.f}</span></div>`;
 }
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
@@ -872,7 +943,7 @@ function renderToday(){
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
  const day=state.selectedDay,date=nextDate(day),plan=planForDay(day),tot=dayTotals(day,date);
- document.getElementById('content').innerHTML=`<section class="section"><div class="day-tabs">${days.map(d=>`<button class="${d===day?'primary':'secondary'}" data-day="${d}">${d}</button>`).join('')}</div></section><section class="section"><div class="section-title"><h2>${day.toUpperCase()}</h2><span>${date}</span></div><div class="card"><strong>≈ ${Math.round(tot.kcal)} kcal</strong><p class="note">P ${Math.round(tot.p)} g · HC ${Math.round(tot.c)} g · G ${Math.round(tot.f)} g</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div>${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="day-tabs">${days.map(d=>`<button class="${d===day?'primary':'secondary'}" data-day="${d}">${d}</button>`).join('')}</div></section><section class="section"><div class="section-title"><h2>${day.toUpperCase()}</h2><span>${date}</span></div><div class="card"><strong>≈ ${Math.round(tot.kcal)} kcal planificadas</strong><p class="note">P ${Math.round(tot.p)} g · HC ${Math.round(tot.c)} g · G ${Math.round(tot.f)} g</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div></section>${macroBlock(day,date)}<section class="section">${plan.map((m,i)=>mealCard(day,date,m,i,true)).join('')}</section>`;
  document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.selectedDay=b.dataset.day;render()});
  bindMealActions(day,date);
  const rb=document.getElementById('reset-day-menu'); if(rb) rb.onclick=()=>resetDayMenu(day,date);
@@ -912,14 +983,14 @@ function renderFoods(){
  document.querySelectorAll('[data-cfdel]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.cfdel),a=customFoods();if(confirm(`¿Eliminar ${a[i].name}?`)){a.splice(i,1);save('customFoodsV8',a);render();}});
 }
 function renderBackup(){
- document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V8.1</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card"><div class="section-title"><h2>Backup</h2><span>V9.9</span></div><p class="note">Importa un JSON de la antigua JC Training o exporta los datos actuales.</p><div class="backup-actions"><button id="importBtn" class="primary">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="exportBtn" class="secondary">Exportar backup</button></div><p id="backupStatus" class="note"></p></div></section>`;
  importBtn.onclick=()=>importFile.click();
  importFile.onchange=()=>importBackup(importFile.files?.[0]);
  exportBtn.onclick=exportBackup;
 }
 function exportBackup(){
  const storage={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storage[k]=localStorage.getItem(k)}
- const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'8.1',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({app:'JC Nutrition CLEAN',version:'9.9.0',exportedAt:new Date().toISOString(),storage},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`jc-nutrition-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  backupStatus.textContent='Backup exportado.';
 }
@@ -1075,5 +1146,5 @@ document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{state.view=b.dataset
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 migrateBasePlanV6();
 migrateBasePlanV8();
-migrateDiet14V89();
+migratePlan19V98();
 render();
