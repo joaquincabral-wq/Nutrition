@@ -15,7 +15,7 @@
   <header class="topbar">
     <div class="brand">JC NUTRITION</div>
     <h1 id="pageTitle">Hoy</h1>
-    <div class="version">V9.9 · Plan 19 Ganancia</div>
+    <div class="version">V9.9.1 · Plan 19 Ganancia</div>
   </header>
 
   <main id="content"></main>
@@ -28,8 +28,10 @@
     <button data-view="measurements" class="nav">Medidas</button>
     <button data-view="progress" class="nav">Progreso</button>
     <button data-view="backup" class="nav">Backup</button>
+    <button id="openTraining" class="nav" type="button" aria-label="Abrir JC Training">🏋️ Training</button>
   </nav>
 
+  <script>document.getElementById('openTraining').addEventListener('click',()=>window.location.href='https://joaquincabral-wq.github.io/JC-Training/');</script>
   <script src="./app.js"></script>
 </body>
 </html>
