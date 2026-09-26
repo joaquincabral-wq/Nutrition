@@ -157,3 +157,8 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .v87-option h3{margin:0;font-size:18px}
 .v87-result{margin-top:10px;padding-top:10px;border-top:1px solid rgba(148,163,184,.12);font-weight:700}
 .v87ApplyOption{margin-bottom:2px}
+
+/* V9.10 · JC Suite unified navigation */
+.bottom-nav{display:flex!important;grid-template-columns:none!important;align-items:stretch;justify-content:flex-start;gap:7px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:9px 10px max(9px,env(safe-area-inset-bottom));scrollbar-width:none}
+.bottom-nav::-webkit-scrollbar{display:none}.bottom-nav .nav{flex:0 0 auto;min-width:86px;padding:11px 12px;border:1px solid #315778;background:#173453;color:#eaf2ff;border-radius:12px;font-size:12px}.bottom-nav .nav.active{background:#eaf2ff;color:#07111f}.bottom-nav .app-switch{border-color:#2f8c64;background:#0e2c29;color:#b7f7d3}
+@media(max-width:420px){.bottom-nav .nav{min-width:78px;padding:10px 9px;font-size:11.5px}}
