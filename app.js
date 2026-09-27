@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.10.1';
+window.JC_NUTRITION_VERSION='9.10.2';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -39,6 +39,7 @@ const DB=[
  ['claras',['claras'],48,10.5,.7,.2],
  ['ternera',['ternera','carne magra'],170,24,0,8],
  ['bacalao',['bacalao'],82,18,0,.7],
+ ['crema_cacahuete',['crema de cacahuete 100%','crema de cacahuete'],600,26,12,50],
  ['cacahuete',['cacahuete en polvo'],380,46,35,12],
  ['fruta',['fruta'],50,.6,12,.2],
  ['kiwi',['kiwi'],61,1.1,14.7,.5],
@@ -61,6 +62,7 @@ const SMART_FOODS=[
  {name:'Fruta',cat:'fruta',kcal:50,p:.6,c:12,f:.2},
  {name:'Verdura',cat:'verdura',kcal:30,p:2,c:5,f:.3},
  {name:'Ensalada',cat:'verdura',kcal:20,p:1,c:3,f:.2},
+ {name:'Crema de cacahuete 100%',cat:'grasa',kcal:600,p:26,c:12,f:50,role:'fat_topping'},
  {name:'Cacahuete en polvo',cat:'grasa',kcal:380,p:46,c:35,f:12,role:'fat_topping'},
  {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6,role:'protein_main'},
  {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5,role:'protein_main'},
