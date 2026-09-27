@@ -8,3 +8,4 @@ JC Nutrition V9.10.2 · Menú variado
 - V9.10.1: Quark Milbona 20% deja de formar parte del menú base. Se mantiene en Alimentos y como opción de sustitución.
 
 - V9.10.2: crema de cacahuete 100% añadida como opción (no forma parte del menú base). Valores genéricos editables: 600 kcal, P 26 g, HC 12 g, G 50 g / 100 g.
+- V9.10.3: revisión completa de raciones del menú base. Se eliminan cantidades artificiales (31.25 g, 22.8 g, 17.5 g, etc.) y se redondean a raciones prácticas, compensando pequeños cambios para conservar el planteamiento energético. Quark y crema de cacahuete siguen siendo opcionales, no alimentos fijos del menú.
