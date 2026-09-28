@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.10.3';
+window.JC_NUTRITION_VERSION='9.10.4';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -64,6 +64,7 @@ const SMART_FOODS=[
  {name:'Ensalada',cat:'verdura',kcal:20,p:1,c:3,f:.2},
  {name:'Crema de cacahuete 100%',cat:'grasa',kcal:600,p:26,c:12,f:50,role:'fat_topping'},
  {name:'Cacahuete en polvo',cat:'grasa',kcal:380,p:46,c:35,f:12,role:'fat_topping'},
+ {name:'Cacahuete en polvo Mercadona',cat:'mixto',kcal:416,p:46.7,c:21,f:13.2,role:'protein_topping'},
  {name:'Pollo',cat:'proteina',kcal:120,p:23,c:0,f:2.6,role:'protein_main'},
  {name:'Pavo plancha',cat:'proteina',kcal:115,p:24,c:0,f:1.5,role:'protein_main'},
  {name:'Cinta de lomo',cat:'proteina',kcal:150,p:22,c:0,f:6,role:'protein_main'},
@@ -161,10 +162,18 @@ const RODILLA_FOODS=[
  {name:'Rodilla · Atún con tomate',cat:'rodilla',unitKcal:140,unitP:7,unitC:15,unitF:6,estimate:true}
 ];
 
-function allFoodCatalog(){return [...RODILLA_FOODS,...SMART_FOODS,...customFoods().map(normalizedCustomFood)];}
+function allFoodCatalog(){return [...customFoods().map(normalizedCustomFood),...RODILLA_FOODS,...SMART_FOODS];}
 function smartFoodFromText(text){
  const t=String(text).toLowerCase();
- const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
+ // Prioriza alimentos personalizados y nombres mas especificos.
+ // Evita que, por ejemplo, "Cacahuete en polvo Mercadona" se lea como el generico.
+ const custom=customFoods().map(normalizedCustomFood)
+   .filter(x=>t.includes(String(x.name).toLowerCase()))
+   .sort((a,b)=>String(b.name).length-String(a.name).length)[0];
+ if(custom)return custom;
+ const exact=allFoodCatalog()
+   .filter(x=>t.includes(String(x.name).toLowerCase()))
+   .sort((a,b)=>String(b.name).length-String(a.name).length)[0];
  if(exact)return exact;
  const rules=[
   ['Pistachos',['pistachos','pistacho']],
@@ -261,15 +270,24 @@ function parseQty(text){
 }
 function foodDef(text){
  const t=String(text).toLowerCase();
- // Prefer the most specific alias. This prevents "claras de huevo" from
- // being classified as whole egg simply because it also contains "huevo".
+ // Los alimentos personalizados tienen prioridad absoluta sobre genericos/DB.
+ const custom=customFoods().map(normalizedCustomFood)
+   .filter(x=>t.includes(String(x.name).toLowerCase()))
+   .sort((a,b)=>String(b.name).length-String(a.name).length)[0];
+ if(custom) return [custom.name,[custom.name.toLowerCase()],custom.kcal,custom.p,custom.c,custom.f];
+ // Despues, el nombre de catalogo mas especifico.
+ const catalog=allFoodCatalog()
+   .filter(x=>t.includes(String(x.name).toLowerCase()))
+   .sort((a,b)=>String(b.name).length-String(a.name).length)[0];
+ if(catalog) return [catalog.name,[catalog.name.toLowerCase()],catalog.kcal,catalog.p,catalog.c,catalog.f];
+ // Por ultimo, alias historicos de la base interna.
  const matches=DB.filter(x=>x[1].some(p=>t.includes(p)));
  const db=matches.sort((a,b)=>Math.max(...b[1].filter(p=>t.includes(p)).map(p=>p.length))-Math.max(...a[1].filter(p=>t.includes(p)).map(p=>p.length)))[0];
  if(db) return db;
- const exact=allFoodCatalog().find(x=>t.includes(String(x.name).toLowerCase()));
- const smart=exact||smartFoodFromText(text);
+ const smart=smartFoodFromText(text);
  return smart ? [smart.name,[smart.name.toLowerCase()],smart.kcal,smart.p,smart.c,smart.f] : null;
 }
+
 function macros(text){
  const q=parseQty(text);
  if(q==null)return {kcal:0,p:0,c:0,f:0,known:false};
@@ -820,6 +838,38 @@ function openFoodChangeModal(day,date,mi,fi,currentText){
   render();setTimeout(()=>openRebalanceModal(day,date),90);setTimeout(()=>openRebalanceModal(day,date),90);
  };
 }
+
+function practicalRoundQty(q,cat){
+ if(!Number.isFinite(q)||q<=0)return 0;
+ const step=cat==='grasa'||cat==='mixto'?5:cat==='proteina'||cat==='lacteo'?10:cat==='hidrato'?5:10;
+ return Math.max(step,Math.round(q/step)*step);
+}
+function suggestedQtyForFood(day,date,food){
+ if(!food)return null;
+ const type=v7Type(day,date),goal=v7Targets()[type],cons=consumedTotals(day,date);
+ const rem={kcal:Math.max(0,goal.kcal-cons.kcal),p:Math.max(0,goal.p-cons.p),c:Math.max(0,goal.c-cons.c),f:Math.max(0,goal.f-cons.f)};
+ const per={kcal:(Number(food.kcal)||0)/100,p:(Number(food.p)||0)/100,c:(Number(food.c)||0)/100,f:(Number(food.f)||0)/100};
+ let primary='kcal',need=rem.kcal,rate=per.kcal;
+ if(food.cat==='proteina'||food.cat==='lacteo'){primary='p';need=rem.p;rate=per.p;}
+ else if(food.cat==='hidrato'||food.cat==='fruta'){primary='c';need=rem.c;rate=per.c;}
+ else if(food.cat==='grasa'){primary='f';need=rem.f;rate=per.f;}
+ else {
+   // Para alimentos mixtos elegimos el deficit que mejor encaja con su perfil.
+   const opts=[['p',rem.p,per.p],['c',rem.c,per.c],['f',rem.f,per.f],['kcal',rem.kcal,per.kcal]]
+     .filter(x=>x[1]>0&&x[2]>0)
+     .map(x=>({...{key:x[0],need:x[1],rate:x[2]},q:x[1]/x[2]}));
+   opts.sort((a,b)=>a.q-b.q); if(opts[0]){primary=opts[0].key;need=opts[0].need;rate=opts[0].rate;}
+ }
+ let q=rate>0?need/rate:0;
+ const caps={grasa:30,proteina:300,lacteo:300,hidrato:180,fruta:300,verdura:400,mixto:100};
+ q=Math.min(q,caps[food.cat]||200);
+ q=practicalRoundQty(q,food.cat);
+ if(q<=0)return {qty:0,primary,rem};
+ const add={kcal:per.kcal*q,p:per.p*q,c:per.c*q,f:per.f*q};
+ // Si la sugerencia se pasa mucho de kcal pendientes, recortamos a una cantidad practica.
+ if(rem.kcal>0&&add.kcal>rem.kcal*1.25&&per.kcal>0){q=practicalRoundQty(rem.kcal/per.kcal,food.cat);}
+ return {qty:q,primary,rem};
+}
 function openFoodAddModal(day,date,mi){
  closeFoodModal();
  const modal=document.createElement('div');
@@ -828,6 +878,7 @@ function openFoodAddModal(day,date,mi){
  modal.innerHTML=`<div class="sheet">
   <div class="section-title"><h2>Añadir alimento</h2><button id="fmClose" class="tiny">Cerrar</button></div>
   <label class="field"><span>Alimento</span><select id="fmFood" class="input">${foodOptions(allFoodCatalog())}</select></label>
+  <div id="fmSuggestion" class="card" style="background:#0a1423"></div>
   <div class="row">
    <label class="field"><span>Cantidad</span><input id="fmQty" class="input" type="number" inputmode="decimal" value="100"></label>
    <label class="field"><span>Unidad</span><select id="fmUnit" class="input"><option value="g">g</option><option value="ml">ml</option></select></label>
@@ -840,6 +891,24 @@ function openFoodAddModal(day,date,mi){
  const addQty=document.getElementById('fmQty');
  const addUnit=document.getElementById('fmUnit');
  const addMacros=document.getElementById('fmAddMacros');
+ const suggestionBox=document.getElementById('fmSuggestion');
+ let suggestion=null;
+ function selectedDef(){
+   return allFoodCatalog().filter(x=>x.name===addFood.value).sort((a,b)=>String(b.name).length-String(a.name).length)[0]||null;
+ }
+ function refreshSuggestion(applyDefault=false){
+   suggestion=suggestedQtyForFood(day,date,selectedDef());
+   const type=v7Type(day,date),goal=v7Targets()[type],cons=consumedTotals(day,date);
+   const left={kcal:Math.max(0,goal.kcal-cons.kcal),p:Math.max(0,goal.p-cons.p),c:Math.max(0,goal.c-cons.c),f:Math.max(0,goal.f-cons.f)};
+   if(!suggestion||!suggestion.qty){
+     suggestionBox.innerHTML=`<strong>Objetivo casi cubierto</strong><p class="note">Te quedan aprox. ${Math.round(left.kcal)} kcal · P ${Math.round(left.p)} · HC ${Math.round(left.c)} · G ${Math.round(left.f)}.</p>`;
+     return;
+   }
+   const lbl={p:'proteína',c:'hidratos',f:'grasas',kcal:'calorías'}[suggestion.primary]||'objetivo';
+   suggestionBox.innerHTML=`<strong>💡 Cantidad sugerida: ${suggestion.qty} g</strong><p class="note">Calculada priorizando ${lbl} y evitando cantidades poco prácticas.<br>Te quedan aprox. ${Math.round(left.kcal)} kcal · P ${Math.round(left.p)} · HC ${Math.round(left.c)} · G ${Math.round(left.f)}.</p><button id="fmUseSuggested" class="secondary" style="width:100%">Usar ${suggestion.qty} g</button>`;
+   document.getElementById('fmUseSuggested').onclick=()=>{addQty.value=suggestion.qty;addQty.dataset.manual='1';refreshAddMacros();};
+   if(applyDefault&&!addQty.dataset.manual){addQty.value=suggestion.qty;}
+ }
  function refreshAddMacros(){
    const q=Number(addQty.value);
    const txt=`${Number.isFinite(q)?q:0} ${addUnit.value} ${addFood.value}`;
@@ -848,10 +917,10 @@ function openFoodAddModal(day,date,mi){
      ? `<strong>≈ ${Math.round(m.kcal)} kcal</strong><p class="note">P ${Math.round(m.p*10)/10} g · HC ${Math.round(m.c*10)/10} g · G ${Math.round(m.f*10)/10} g</p>`
      : '<strong>Macros no disponibles</strong>';
  }
- addFood.onchange=refreshAddMacros;
- addQty.oninput=refreshAddMacros;
+ addFood.onchange=()=>{addQty.dataset.manual='';refreshSuggestion(true);refreshAddMacros();};
+ addQty.oninput=()=>{addQty.dataset.manual='1';refreshAddMacros();};
  addUnit.onchange=refreshAddMacros;
- refreshAddMacros();
+ refreshSuggestion(true);refreshAddMacros();
  document.getElementById('fmClose').onclick=closeFoodModal;
  document.getElementById('fmCancel').onclick=closeFoodModal;
  document.getElementById('fmSave').onclick=()=>{
