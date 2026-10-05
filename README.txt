@@ -11,3 +11,5 @@ JC Nutrition V9.10.2 · Menú variado
 - V9.10.4: revisión completa de raciones del menú base. Se eliminan cantidades artificiales (31.25 g, 22.8 g, 17.5 g, etc.) y se redondean a raciones prácticas, compensando pequeños cambios para conservar el planteamiento energético. Quark y crema de cacahuete siguen siendo opcionales, no alimentos fijos del menú.
 
 V9.10.4: alimentos personalizados priorizados en macros; sugerencia de cantidad al añadir alimento; cacahuete en polvo Mercadona exacto.
+
+V9.10.5: añade Guisantes (81 kcal, 5.4 P, 14.5 HC, 0.4 G por 100 g) como verdura rica en hidratos. Al sustituir verdura normal por guisantes, la cantidad se calcula por equivalencia energética en lugar de 1:1; también funciona la equivalencia inversa.

@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.10.4';
+window.JC_NUTRITION_VERSION='9.10.5';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -62,6 +62,7 @@ const SMART_FOODS=[
  {name:'Fruta',cat:'fruta',kcal:50,p:.6,c:12,f:.2},
  {name:'Verdura',cat:'verdura',kcal:30,p:2,c:5,f:.3},
  {name:'Ensalada',cat:'verdura',kcal:20,p:1,c:3,f:.2},
+ {name:'Guisantes',cat:'verdura_hc',kcal:81,p:5.4,c:14.5,f:.4,role:'veg_carb'},
  {name:'Crema de cacahuete 100%',cat:'grasa',kcal:600,p:26,c:12,f:50,role:'fat_topping'},
  {name:'Cacahuete en polvo',cat:'grasa',kcal:380,p:46,c:35,f:12,role:'fat_topping'},
  {name:'Cacahuete en polvo Mercadona',cat:'mixto',kcal:416,p:46.7,c:21,f:13.2,role:'protein_topping'},
@@ -138,6 +139,7 @@ function customFoods(){return load('customFoodsV8',[]);}
 function classifyFood(name,kcal,p,c,f){
  const n=String(name||'').toLowerCase();
  if(/fruta|fresa|arándan|arandan|melocot|sandía|sandia|plátano|platano|ciruela|melón|melon|naranja|manzana|pera|kiwi|framb|mora/.test(n))return'fruta';
+ if(/guisante/.test(n))return'verdura_hc';
  if(/lechuga|tomate|pepino|espárr|esparr|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria|brócoli|brocoli|coliflor|calabac|berenjena|verdura/.test(n))return'verdura';
  if(/yogur|queso|kéfir|kefir|leche|lácteo|lacteo|almendra/.test(n))return'lacteo';
  if(f>=45&&c<20&&p<20)return'grasa';
@@ -208,6 +210,7 @@ function smartFoodFromText(text){
   ['Cecina de vacuno',['cecina']],
   ['Huevo entero',['huevos','huevo']],
   ['Fruta',[' fruta']],
+  ['Guisantes',['guisantes','guisante']],
   ['Verdura',['verdura']],
   ['Ensalada',['ensalada']],
   ['Cacahuete en polvo',['cacahuete en polvo']],
@@ -243,6 +246,9 @@ function equivalentQty(originalText,target){
  else if(src.cat==='hidrato'&&target.cat==='hidrato') q=qty*(src.c/target.c);
  else if(src.cat==='fruta'&&target.cat==='fruta') q=qty*(src.c/target.c);
  else if(src.cat==='verdura'&&target.cat==='verdura') q=qty;
+ else if(src.cat==='verdura'&&target.cat==='verdura_hc') q=qty*(src.kcal/target.kcal);
+ else if(src.cat==='verdura_hc'&&target.cat==='verdura') q=qty*(src.kcal/target.kcal);
+ else if(src.cat==='verdura_hc'&&target.cat==='verdura_hc') q=qty;
  else if(src.cat==='lacteo'&&target.cat==='lacteo') q=qty*(src.kcal/target.kcal);
  else if(src.cat==='grasa'&&target.cat==='grasa') q=qty*(src.kcal/target.kcal);
  else q=qty*(src.kcal/target.kcal);
@@ -478,7 +484,7 @@ function v85Kind(text){
  if(/arroz|patata|batata|pasta|avena|crema de arroz|pan|wasa/.test(t)) return 'carb';
  if(/melocot|manzana|pera|plátano|platano|arándan|arandan|fresa|framb|mora|sandía|sandia|melón|melon|naranja|kiwi|ciruela/.test(t)) return 'fruit';
  if(/pollo|pavo|ternera|lomo|merluza|bacalao|dorada|salm|atún|atun|gamba|huevo|claras|queso fresco batido|cottage|activia|whey|proteína en polvo|proteina en polvo|cecina|jamón|jamon/.test(t)) return 'protein';
- if(/verdura|ensalada|tomate|lechuga|pepino|calabac|berenjena|brócoli|brocoli|coliflor|espárrag|esparrag|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria/.test(t)) return 'veg';
+ if(/guisante|verdura|ensalada|tomate|lechuga|pepino|calabac|berenjena|brócoli|brocoli|coliflor|espárrag|esparrag|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria/.test(t)) return 'veg';
  return 'other';
 }
 function v85ReplaceQty(text,newQty){
@@ -753,7 +759,8 @@ function changeOptionsForContext(src,mealLabel,currentText){
  const isMain=label.includes('comida')||label.includes('cena');
 
  if(src.cat==='fruta') return catalog.filter(x=>x.cat==='fruta');
- if(src.cat==='verdura') return catalog.filter(x=>x.cat==='verdura');
+ if(src.cat==='verdura') return catalog.filter(x=>x.cat==='verdura'||x.cat==='verdura_hc');
+ if(src.cat==='verdura_hc') return catalog.filter(x=>x.cat==='verdura'||x.cat==='verdura_hc');
  if(src.cat==='grasa') return catalog.filter(x=>x.cat==='grasa');
 
  if(src.cat==='hidrato') {
