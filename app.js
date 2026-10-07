@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.10.5';
+window.JC_NUTRITION_VERSION='9.10.6';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -1112,7 +1112,8 @@ function scaleOptions(selected=''){
   return SCALE_FOODS.map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');
 }
 function equivalenceFoods(){
- const base=[...SCALE_FOODS,{name:'Copos de avena',kcal:389,p:16.9,c:66.3,f:6.9,unit:'g'},{name:'Crema de arroz ProCao',kcal:352,p:8.8,c:74,f:1.5,unit:'g'}];
+ const vegetables=SMART_FOODS.filter(x=>x.cat==='verdura'||x.cat==='verdura_hc').map(x=>({...x,unit:'g'}));
+ const base=[...SCALE_FOODS,{name:'Copos de avena',kcal:389,p:16.9,c:66.3,f:6.9,unit:'g'},{name:'Crema de arroz ProCao',kcal:352,p:8.8,c:74,f:1.5,unit:'g'},...vegetables];
  const seen=new Set();return [...base,...customFoods().map(normalizedCustomFood)].filter(x=>{const k=x.name.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});
 }
 function eqOptions(selected=''){return equivalenceFoods().map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');}
@@ -1155,6 +1156,19 @@ function equivalentAmount(){
   const criterion=document.getElementById('eqCriterion').value;
   const out=document.getElementById('eqResult');
   if(!a||!b||!Number.isFinite(qty)){out.textContent='Completa los campos.';return;}
+  // Entre verduras normales mantenemos una ración práctica 1:1. Los guisantes,
+  // por su mayor densidad energética y de hidratos, se ajustan por calorías.
+  const aVeg=a.cat==='verdura', bVeg=b.cat==='verdura';
+  const aPeas=a.cat==='verdura_hc', bPeas=b.cat==='verdura_hc';
+  if(aVeg&&bVeg){
+    out.innerHTML=`<strong>${Math.round(qty)} ${b.unit||'g'} de ${b.name}</strong><br><span class="note">Ración práctica de verdura 1:1. No hace falta igualar calorías entre verduras.</span>`;
+    return;
+  }
+  if((aVeg&&bPeas)||(aPeas&&bVeg)||(aPeas&&bPeas)){
+    const target=qty*(a.kcal/b.kcal);
+    out.innerHTML=`<strong>${Math.round(target)} ${b.unit||'g'} de ${b.name}</strong><br><span class="note">Equivalencia aproximada por calorías. Los guisantes aportan más hidratos y energía que una verdura normal.</span>`;
+    return;
+  }
   let va,vb,label;
   if(criterion==='protein'){va=a.p;vb=b.p;label='proteína';}
   else if(criterion==='carbs'){va=a.c;vb=b.c;label='hidratos';}
