@@ -15,3 +15,7 @@ V9.10.4: alimentos personalizados priorizados en macros; sugerencia de cantidad 
 V9.10.5: añade Guisantes (81 kcal, 5.4 P, 14.5 HC, 0.4 G por 100 g) como verdura rica en hidratos. Al sustituir verdura normal por guisantes, la cantidad se calcula por equivalencia energética en lugar de 1:1; también funciona la equivalencia inversa.
 
 V9.10.6: incorpora verduras al conversor de equivalencias (brócoli, judías verdes, coliflor, calabacín, berenjena, espárragos, champiñones, pimiento, tomate, pepino, zanahoria, espinacas, cebolla, lechuga y ensalada). Entre verduras normales mantiene una ración práctica 1:1; los guisantes se ajustan por calorías por su mayor aporte de hidratos.
+
+V9.10.7: añade una sección visible y específica 'Equivalencias de verduras' dentro de Báscula, con brócoli, judías verdes, coliflor, calabacín, berenjena, espárragos, champiñones, pimiento, tomate, pepino, zanahoria, espinacas, cebolla, lechuga, ensalada y guisantes. Verduras normales 1:1; guisantes ajustados por calorías.
+
+- V9.10.8: coles de Bruselas congeladas incorporadas a Alimentos, Cambiar alimento y equivalencias de verduras de Bascula. Etiqueta por 100 g: 42 kcal, P 3.1 g, HC 4.8 g, grasas <0.5 g (estimacion interna 0.49 g). Pesaje congelado antes de cocinar.

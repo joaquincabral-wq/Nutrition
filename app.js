@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.10.6';
+window.JC_NUTRITION_VERSION='9.10.8';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -91,6 +91,7 @@ const SMART_FOODS=[
  {name:'Berenjena',cat:'verdura',kcal:25,p:1,c:6,f:.2},
  {name:'Brócoli',cat:'verdura',kcal:34,p:2.8,c:7,f:.4},
  {name:'Coliflor',cat:'verdura',kcal:25,p:1.9,c:5,f:.3},
+ {name:'Coles de Bruselas',cat:'verdura',kcal:42,p:3.1,c:4.8,f:0.49}, // Congeladas: etiqueta del usuario; grasas <0,5 g/100 g
  {name:'Copos de avena',cat:'hidrato',kcal:389,p:16.9,c:66.3,f:6.9,role:'carb_breakfast'},
  {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0,role:'carb_breakfast'},
  {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2,role:'protein_cold'},
@@ -140,7 +141,7 @@ function classifyFood(name,kcal,p,c,f){
  const n=String(name||'').toLowerCase();
  if(/fruta|fresa|arándan|arandan|melocot|sandía|sandia|plátano|platano|ciruela|melón|melon|naranja|manzana|pera|kiwi|framb|mora/.test(n))return'fruta';
  if(/guisante/.test(n))return'verdura_hc';
- if(/lechuga|tomate|pepino|espárr|esparr|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria|brócoli|brocoli|coliflor|calabac|berenjena|verdura/.test(n))return'verdura';
+ if(/lechuga|tomate|pepino|espárr|esparr|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria|brócoli|brocoli|coliflor|coles de bruselas|col de bruselas|calabac|berenjena|verdura/.test(n))return'verdura';
  if(/yogur|queso|kéfir|kefir|leche|lácteo|lacteo|almendra/.test(n))return'lacteo';
  if(f>=45&&c<20&&p<20)return'grasa';
  if(p>=18&&p>=c*.8)return'proteina';
@@ -230,7 +231,7 @@ function smartFoodFromText(text){
   ['Avena',['avena']],['Melocotón',['melocot']],['Sandía',['sandía','sandia']],
   ['Arándanos',['arándan','arandan']],['Frambuesas',['framb']],['Moras',['moras']],
   ['Plátano',['plátano','platano']],['Ciruelas',['ciruela']],['Calabacín',['calabac']],
-  ['Berenjena',['berenjena']],['Brócoli',['brócoli','brocoli']],['Coliflor',['coliflor']]
+  ['Berenjena',['berenjena']],['Brócoli',['brócoli','brocoli']],['Coliflor',['coliflor']],['Coles de Bruselas',['coles de bruselas','col de bruselas']]
  ];
  for(const [name,keys] of rules){
   if(keys.some(k=>t.includes(k))) return allFoodCatalog().find(x=>x.name===name);
@@ -484,7 +485,7 @@ function v85Kind(text){
  if(/arroz|patata|batata|pasta|avena|crema de arroz|pan|wasa/.test(t)) return 'carb';
  if(/melocot|manzana|pera|plátano|platano|arándan|arandan|fresa|framb|mora|sandía|sandia|melón|melon|naranja|kiwi|ciruela/.test(t)) return 'fruit';
  if(/pollo|pavo|ternera|lomo|merluza|bacalao|dorada|salm|atún|atun|gamba|huevo|claras|queso fresco batido|cottage|activia|whey|proteína en polvo|proteina en polvo|cecina|jamón|jamon/.test(t)) return 'protein';
- if(/guisante|verdura|ensalada|tomate|lechuga|pepino|calabac|berenjena|brócoli|brocoli|coliflor|espárrag|esparrag|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria/.test(t)) return 'veg';
+ if(/guisante|verdura|ensalada|tomate|lechuga|pepino|calabac|berenjena|brócoli|brocoli|coliflor|coles de bruselas|col de bruselas|espárrag|esparrag|pimiento|champi|judía|judia|cebolla|espinaca|zanahoria/.test(t)) return 'veg';
  return 'other';
 }
 function v85ReplaceQty(text,newQty){
@@ -1178,6 +1179,31 @@ function equivalentAmount(){
   out.innerHTML=`<strong>${Math.round(target)} ${b.unit||'g'} de ${b.name}</strong><br><span class="note">Equivalencia aproximada por ${label}.</span>`;
 }
 
+
+function vegetableFoods(){
+ return SMART_FOODS.filter(x=>x.cat==='verdura'||x.cat==='verdura_hc');
+}
+function vegetableOptions(selected=''){
+ return vegetableFoods().map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');
+}
+function vegetableEquivalent(){
+ const vegs=vegetableFoods();
+ const a=vegs.find(f=>f.name===document.getElementById('vegA').value);
+ const b=vegs.find(f=>f.name===document.getElementById('vegB').value);
+ const qty=Number(document.getElementById('vegQty').value);
+ const out=document.getElementById('vegResult');
+ if(!a||!b||!Number.isFinite(qty)||qty<=0){out.textContent='Completa los campos.';return;}
+ const normalA=a.cat==='verdura', normalB=b.cat==='verdura';
+ let target=qty, note='Ración práctica 1:1 entre verduras normales.';
+ if(!(normalA&&normalB)){
+   target=qty*(a.kcal/b.kcal);
+   note='Equivalencia aproximada por calorías. Los guisantes aportan más hidratos y energía que una verdura normal.';
+ }
+ const am={kcal:a.kcal*qty/100,p:a.p*qty/100,c:a.c*qty/100,f:a.f*qty/100};
+ const bm={kcal:b.kcal*target/100,p:b.p*target/100,c:b.c*target/100,f:b.f*target/100};
+ out.innerHTML=`<strong>${Math.round(qty)} g de ${a.name} ≈ ${Math.round(target)} g de ${b.name}</strong><div class="macro-compare"><div><span>${a.name}</span><strong>${Math.round(am.kcal)} kcal</strong><small>P ${am.p.toFixed(1)} · HC ${am.c.toFixed(1)} · G ${am.f.toFixed(1)}</small></div><div><span>${b.name}</span><strong>${Math.round(bm.kcal)} kcal</strong><small>P ${bm.p.toFixed(1)} · HC ${bm.c.toFixed(1)} · G ${bm.f.toFixed(1)}</small></div></div><p class="note">${note}</p>`;
+}
+
 function fruitFoods(){return allFoodCatalog().filter(x=>x.cat==='fruta');}
 function fruitOptions(selected=''){
  return fruitFoods().map(f=>`<option value="${f.name}" ${f.name===selected?'selected':''}>${f.name}</option>`).join('');
@@ -1213,16 +1239,24 @@ function renderScale(){
  <label class="field"><span>Criterio</span><select id="eqCriterion" class="input"><option value="calories">Calorías</option><option value="protein">Proteína</option><option value="carbs">Hidratos</option></select></label></div>
  <button id="eqCalc" class="primary" style="width:100%">Calcular equivalencia</button>
  <div id="eqResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>
+ <section class="section"><div class="card"><div class="section-title"><h2>Equivalencias de verduras</h2><span>raciones prácticas</span></div>
+ <div class="row"><label class="field"><span>Verdura A</span><select id="vegA" class="input">${vegetableOptions('Verdura')}</select></label><label class="field"><span>Gramos A</span><input id="vegQty" class="input" type="number" value="300"></label></div>
+ <div class="row"><label class="field"><span>Verdura B</span><select id="vegB" class="input">${vegetableOptions('Brócoli')}</select></label></div>
+ <button id="vegCalc" class="primary" style="width:100%">Calcular verdura equivalente</button><div id="vegResult" class="card" style="margin-top:12px;background:#0a1423"></div>
+ <p class="note">Entre verduras normales se mantiene por defecto la misma cantidad en gramos. Guisantes se ajustan aparte por su mayor aporte energético e hidratos.</p></div></section>
  <section class="section"><div class="card"><div class="section-title"><h2>Equivalencias de fruta</h2><span>gramos y macros</span></div>
  <div class="row"><label class="field"><span>Fruta A</span><select id="frA" class="input">${fruitOptions('Melocotón')}</select></label><label class="field"><span>Gramos A</span><input id="frQty" class="input" type="number" value="150"></label></div>
  <div class="row"><label class="field"><span>Fruta B</span><select id="frB" class="input">${fruitOptions('Manzana')}</select></label><label class="field"><span>Criterio</span><select id="frCriterion" class="input"><option value="calories">Calorías</option><option value="carbs">Hidratos</option></select></label></div>
  <button id="frCalc" class="primary" style="width:100%">Calcular fruta equivalente</button><div id="frResult" class="card" style="margin-top:12px;background:#0a1423"></div></div></section>`;
  document.getElementById('scCalc').onclick=convertRawCooked;
  document.getElementById('eqCalc').onclick=equivalentAmount;
+ document.getElementById('vegCalc').onclick=vegetableEquivalent;
  document.getElementById('frCalc').onclick=fruitEquivalent;
+ ['vegA','vegB','vegQty'].forEach(id=>document.getElementById(id).onchange=vegetableEquivalent);
  ['frA','frB','frQty','frCriterion'].forEach(id=>document.getElementById(id).onchange=fruitEquivalent);
  convertRawCooked();
  equivalentAmount();
+ vegetableEquivalent();
  fruitEquivalent();
 }
 
