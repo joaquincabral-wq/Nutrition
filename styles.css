@@ -176,3 +176,14 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 .jc-closed{background:#132d35;border:1px solid #30565a;padding:12px;border-radius:10px}
 .jc-closed>div{padding:5px 0}.jc-choice-heading{align-items:flex-start}
 @media(max-width:430px){.jc-choice-heading{flex-direction:column;gap:4px}.jc-food-options{grid-template-columns:1fr}}
+
+/* V9.13: interfaz de Hoy compacta; cada comida se despliega al tocarla */
+.jc-today-date{font-size:.82rem;opacity:.7;text-transform:capitalize;padding:2px 4px}
+.jc-compact-meal{padding:12px 0;border-bottom:1px solid rgba(150,160,180,.18)}
+.jc-compact-meal:last-child{border-bottom:0}
+.jc-compact-meal>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.jc-compact-meal>summary::-webkit-details-marker{display:none}
+.jc-compact-meal>summary::after{content:'⌄';opacity:.6;margin-left:5px}
+.jc-compact-meal[open]>summary::after{content:'⌃'}
+.jc-compact-meal .jc-choice-macros{margin-top:12px}
+.jc-selector{padding-top:5px;padding-bottom:5px}
