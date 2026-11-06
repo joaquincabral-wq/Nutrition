@@ -165,3 +165,14 @@ details summary{cursor:pointer;font-weight:800;color:#cbd5e1}
 
 /* Constructor flexible V9.11 */
 .jc-selector{display:grid;gap:18px}.jc-choice-meal{border-top:1px solid #34465b;padding-top:15px}.jc-choice-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.jc-choice-heading span{font-size:12px;color:#80d6b2}.jc-choice-macros{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}.jc-choice-macros span{font-size:12px;background:#15283a;border-radius:8px;padding:6px 8px}.jc-food-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.jc-option{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid #38516a;border-radius:10px;cursor:pointer;font-size:14px;min-height:46px}.jc-option input{width:18px;height:18px;accent-color:#46c78d;flex-shrink:0}.jc-option:has(input:checked){border-color:#46c78d;background:#183c36}.jc-disabled{opacity:.38;cursor:not-allowed}.jc-choice-meal button{margin-top:10px}.jc-closed{display:grid;gap:7px}.jc-all-done{padding:12px;border-radius:10px;background:#183c36;color:#a3f0ce}
+
+/* V9.12: plan preseleccionado y semáforo por comida */
+.jc-choice-macros .jc-macro{font-weight:600;border:1px solid transparent}
+.jc-macro.jc-green{color:#9bf0c3;background:#123c31;border-color:#28785a}
+.jc-macro.jc-yellow{color:#ffe092;background:#42351d;border-color:#a47a27}
+.jc-macro.jc-red{color:#ffabab;background:#4a232c;border-color:#a84857}
+.jc-state.jc-green{color:#8ce8b7}.jc-state.jc-yellow{color:#ffd47c}.jc-state.jc-red{color:#ff9a9a}
+.jc-actions{display:flex;gap:9px;flex-wrap:wrap}.jc-actions button{flex:1;min-width:135px}
+.jc-closed{background:#132d35;border:1px solid #30565a;padding:12px;border-radius:10px}
+.jc-closed>div{padding:5px 0}.jc-choice-heading{align-items:flex-start}
+@media(max-width:430px){.jc-choice-heading{flex-direction:column;gap:4px}.jc-food-options{grid-template-columns:1fr}}

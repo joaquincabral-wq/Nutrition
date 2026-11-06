@@ -962,6 +962,7 @@ function bindMealActions(day,date){
 }
 function resetDayMenu(day,date){
  if(!confirm('Se perderán los cambios manuales de alimentos y cantidades de este día. ¿Restaurar menú original?')) return;
+ localStorage.removeItem('jcChoices:'+date);
  localStorage.removeItem('mealSubs:'+date);
  localStorage.removeItem('v6MealOmit:'+date);
  localStorage.removeItem('v6MealRedis:'+date);
@@ -1032,42 +1033,66 @@ function jcMealTarget(day,date,mi){
  const part=shares[mi];return Object.fromEntries(['kcal','p','c','f'].map(k=>[k,g[k]*(sum[k]?part[k]/sum[k]:1/plan.length)]));
 }
 function jcSum(items){return items.reduce((a,x)=>add(a,macros(x)),{kcal:0,p:0,c:0,f:0});}
-function jcFits(items,target){const m=jcSum(items);return ['kcal','p','c','f'].every(k=>m[k]<=target[k]*(k==='p'?1.28:1.20)+ (k==='kcal'?35:3));}
-function jcComplete(items,target){const m=jcSum(items);return m.kcal>=target.kcal*.82&&m.p>=target.p*.80&&m.c>=target.c*.65&&m.f>=target.f*.55&&jcFits(items,target);}
+function jcFoodKey(x){return String(x).toLowerCase().replace(/^\s*\d+(?:[.,]\d+)?\s*(?:g|gr|ml|unidades?|uds?\.?|huevos?)?\s*/,'').replace(/\s+/g,' ').trim();}
+function jcPool(meal){
+ const kind=jcMealKind(meal[0]),pool=[],keys=new Set();
+ [...meal[1],...JC_CHOICES[kind]].forEach(x=>{const key=jcFoodKey(x);if(!keys.has(key)&&macros(x).known){pool.push(x);keys.add(key);}});
+ return pool;
+}
+function jcMealState(date,mi,meal){
+ const saved=jcSelected(date,mi);
+ if(saved)return saved;
+ // La propuesta inicial es exactamente el plan vigente, sin alterar datos anteriores.
+ return {items:meal[1].filter(x=>macros(x).known),confirmed:false,editing:false,initial:true};
+}
+function jcStatus(v,t,k){
+ if(!t)return 'neutral';const r=v/t;
+ if(k==='p')return r>=.90&&r<=1.15?'green':r>=.80&&r<=1.25?'yellow':'red';
+ if(k==='kcal')return r>=.92&&r<=1.08?'green':r>=.85&&r<=1.15?'yellow':'red';
+ return r>=.90&&r<=1.10?'green':r>=.80&&r<=1.20?'yellow':'red';
+}
+function jcOverall(items,target){const m=jcSum(items);const statuses=['kcal','p','c','f'].map(k=>jcStatus(m[k],target[k],k));return statuses.includes('red')?'red':statuses.includes('yellow')?'yellow':'green';}
+function jcFits(items,target){const m=jcSum(items);return ['kcal','p','c','f'].every(k=>m[k]<=target[k]*(k==='p'?1.25:k==='kcal'?1.15:1.20)+1);}
+function jcComplete(items,target){return items.length>0&&jcOverall(items,target)==='green';}
 function jcSelectorHtml(day,date){
  const plan=planForDay(day),selected=load(`jcChoices:${date}`,{});
  const allDone=plan.every((_,i)=>selected[i]?.confirmed);
- return `<section class="section"><div class="section-title"><h2>🧩 Construye tu menú</h2><span>${Object.values(selected).filter(x=>x.confirmed).length}/${plan.length} confirmadas</span></div><div class="card jc-selector"><p class="note">La app propone alimentos y cantidades. Marca las casillas; las opciones que excedan el margen nutricional se bloquean. Puedes desmarcar alimentos para cambiarlos. Los objetivos por comida se distribuyen proporcionalmente desde tu plan actual.</p>
+ const count=plan.filter((_,i)=>selected[i]?.confirmed).length;
+ return `<section class="section"><div class="section-title"><h2>🧩 Menú flexible</h2><span>${count}/${plan.length} confirmadas</span></div><div class="card jc-selector"><p class="note">Tu plan habitual ya viene marcado. Si tienes los alimentos, pulsa «Aceptar plan». Para sustituirlos, pulsa «Cambiar alimentos»: desmarca lo que no tengas y elige otra opción. Los indicadores muestran la desviación nutricional.</p>
  ${plan.map((meal,mi)=>{
- const st=selected[mi]||{items:[],confirmed:false},target=jcMealTarget(day,date,mi),tot=jcSum(st.items),complete=jcComplete(st.items,target),kind=jcMealKind(meal[0]);
- const pool=[...new Set([...meal[1],...JC_CHOICES[kind]])].filter(x=>macros(x).known);
- return `<div class="jc-choice-meal"><div class="jc-choice-heading"><strong>${meal[0]}</strong><span>${st.confirmed?'✓ Confirmada':complete?'✓ Objetivo cubierto':'Pendiente'}</span></div>
- <div class="jc-choice-macros">${[['kcal','kcal'],['p','P'],['c','HC'],['f','G']].map(([k,n])=>`<span>${n}: <b>${Math.round(tot[k])}</b> / ${Math.round(target[k])}</span>`).join('')}</div>
- ${st.confirmed?`<div class="jc-closed">${st.items.map(x=>`<div>✓ ${x}</div>`).join('')}<button class="secondary" data-jc-reopen="${mi}">Modificar esta comida</button></div>`:
- `<div class="jc-food-options">${pool.map((x,fi)=>{const checked=st.items.includes(x),disabled=!checked&&(complete||!jcFits([...st.items,x],target));return `<label class="jc-option ${disabled?'jc-disabled':''}"><input type="checkbox" data-jc-pick="${mi}:${fi}" ${checked?'checked':''} ${disabled?'disabled':''}><span>${x}</span></label>`;}).join('')}</div><p class="note">${complete?'Objetivo cubierto: las demás opciones quedan bloqueadas.': 'Selecciona alimentos hasta cubrir el objetivo. Si ninguna combinación encaja, puedes seguir usando el menú habitual.'}</p><button class="primary" data-jc-confirm="${mi}" ${!complete?'disabled':''}>Confirmar ${meal[0].toLowerCase()}</button>`}
+ const st=jcMealState(date,mi,meal),target=jcMealTarget(day,date,mi),tot=jcSum(st.items),overall=jcOverall(st.items,target),pool=jcPool(meal);
+ const statusText=st.confirmed?'✓ Confirmada':overall==='green'?'✓ Dentro del objetivo':overall==='yellow'?'△ Revisar balance':'! Desviación nutricional';
+ const statusClass=st.confirmed?'green':overall;
+ const macroHtml=['kcal','p','c','f'].map(k=>{const label={kcal:'kcal',p:'P',c:'HC',f:'G'}[k];return `<span class="jc-macro jc-${jcStatus(tot[k],target[k],k)}">${label}: <b>${Math.round(tot[k])}</b> / ${Math.round(target[k])}</span>`;}).join('');
+ const locked=st.confirmed||!st.editing;
+ return `<div class="jc-choice-meal"><div class="jc-choice-heading"><strong>${meal[0]}</strong><span class="jc-state jc-${statusClass}">${statusText}</span></div><div class="jc-choice-macros">${macroHtml}</div>
+ ${locked?`<div class="jc-closed">${st.items.map(x=>`<div>✓ ${x}</div>`).join('')}</div>${st.confirmed?`<button class="secondary" data-jc-edit="${mi}">Modificar esta comida</button>`:`<div class="jc-actions"><button class="primary" data-jc-accept="${mi}">Aceptar plan</button><button class="secondary" data-jc-edit="${mi}">Cambiar alimentos</button></div>`}`:
+ `<div class="jc-food-options">${pool.map((x,fi)=>{const checked=st.items.includes(x),disabled=!checked&&!jcFits([...st.items,x],target);return `<label class="jc-option ${disabled?'jc-disabled':''}"><input type="checkbox" data-jc-pick="${mi}:${fi}" ${checked?'checked':''} ${disabled?'disabled':''}><span>${x}</span></label>`;}).join('')}</div><p class="note">${overall==='green'?'Balance dentro del margen. Puedes confirmar la selección.':overall==='yellow'?'Hay una desviación moderada; revisa las alternativas.':'Hay una desviación importante; sustituye alimentos para mejorar el balance.'} Las opciones que superarían los límites superiores se bloquean.</p><div class="jc-actions"><button class="primary" data-jc-accept="${mi}" ${overall==='red'?'disabled':''}>Confirmar selección</button><button class="secondary" data-jc-restore="${mi}">Restaurar plan previsto</button></div>`}
  </div>`;}).join('')}
- ${allDone?'<div class="jc-all-done">✓ Menú del día completo. Las alternativas han desaparecido; puedes modificar una comida si lo necesitas.</div>':''}
- </div></section>`;
+ ${allDone?'<div class="jc-all-done">✓ Menú del día confirmado. Puedes reabrir cualquier comida para modificarla.</div>':''}</div></section>`;
 }
 function jcBindSelector(day,date){
  const plan=planForDay(day);
+ const getAll=()=>load(`jcChoices:${date}`,{});
+ document.querySelectorAll('[data-jc-edit]').forEach(el=>el.onclick=()=>{const mi=Number(el.dataset.jcEdit),all=getAll();all[mi]={...jcMealState(date,mi,plan[mi]),confirmed:false,editing:true};save(`jcChoices:${date}`,all);render();});
+ document.querySelectorAll('[data-jc-restore]').forEach(el=>el.onclick=()=>{const mi=Number(el.dataset.jcRestore),all=getAll();all[mi]={items:plan[mi][1].filter(x=>macros(x).known),confirmed:false,editing:true,initial:true};save(`jcChoices:${date}`,all);render();});
  document.querySelectorAll('[data-jc-pick]').forEach(el=>el.onchange=()=>{
-  const [mi,fi]=el.dataset.jcPick.split(':').map(Number),kind=jcMealKind(plan[mi][0]);
-  const pool=[...new Set([...plan[mi][1],...JC_CHOICES[kind]])].filter(x=>macros(x).known),x=pool[fi];
-  const all=load(`jcChoices:${date}`,{}),st=all[mi]||{items:[],confirmed:false};
+  const [mi,fi]=el.dataset.jcPick.split(':').map(Number),pool=jcPool(plan[mi]),x=pool[fi];
+  const all=getAll(),st=jcMealState(date,mi,plan[mi]);
   const next=st.items.includes(x)?st.items.filter(y=>y!==x):[...st.items,x];
-  if(!jcFits(next,jcMealTarget(day,date,mi))){el.checked=false;return;}
-  all[mi]={items:next,confirmed:false};save(`jcChoices:${date}`,all);render();
+  if(!jcFits(next,jcMealTarget(day,date,mi))&&next.length>st.items.length){el.checked=false;return;}
+  all[mi]={...st,items:next,confirmed:false,editing:true,initial:false};save(`jcChoices:${date}`,all);render();
  });
- document.querySelectorAll('[data-jc-confirm]').forEach(el=>el.onclick=()=>{
-  const mi=Number(el.dataset.jcConfirm),all=load(`jcChoices:${date}`,{}),st=all[mi];
-  if(!st||!jcComplete(st.items,jcMealTarget(day,date,mi)))return;
+ document.querySelectorAll('[data-jc-accept]').forEach(el=>el.onclick=()=>{
+  const mi=Number(el.dataset.jcAccept),all=getAll(),st=jcMealState(date,mi,plan[mi]);
+  if(!st.items.length)return;
+  const overall=jcOverall(st.items,jcMealTarget(day,date,mi));
+  if(overall==='red'&&!st.initial){alert('Esta combinación presenta una desviación importante. Revisa los alimentos antes de confirmar.');return;}
+  if(overall!=='green'&&!confirm('El balance nutricional de esta comida no está completamente dentro del objetivo. ¿Quieres mantener esta selección?'))return;
+  // Sólo la confirmación escribe el menú personalizado en los registros existentes.
   const omissions=load(`v6MealOmit:${date}`,{});plan[mi][1].forEach((_,fi)=>omissions[`${mi}:${fi}`]=true);save(`v6MealOmit:${date}`,omissions);
   const adds=load(`v10MealAdds:${date}`,{});adds[String(mi)]=st.items.slice();save(`v10MealAdds:${date}`,adds);
-  all[mi].confirmed=true;save(`jcChoices:${date}`,all);render();
- });
- document.querySelectorAll('[data-jc-reopen]').forEach(el=>el.onclick=()=>{
-  const mi=Number(el.dataset.jcReopen),all=load(`jcChoices:${date}`,{});all[mi].confirmed=false;save(`jcChoices:${date}`,all);render();
+  all[mi]={...st,confirmed:true,editing:false};save(`jcChoices:${date}`,all);render();
  });
 }
 function renderToday(){
