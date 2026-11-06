@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.10.8';
+window.JC_NUTRITION_VERSION='9.11.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -1016,10 +1016,64 @@ function v73StickyBar(day,date){
  const type=v7Type(day,date),t=v7Targets()[type],cons=consumedTotals(day,date);
  return `<div class="v73sticky" id="v73Sticky"><span>🔥 ${Math.round(cons.kcal)}/${t.kcal}</span><span>P ${Math.round(cons.p)}/${t.p}</span><span>HC ${Math.round(cons.c)}/${t.c}</span><span>G ${Math.round(cons.f)}/${t.f}</span></div>`;
 }
+
+// V9.11: constructor de comidas por selección de alimentos, sin modificar los datos históricos.
+const JC_CHOICES={
+ desayuno:['2 huevos','150 ml claras de huevo','200 g queso cottage','30 g proteína en polvo','60 g pan integral','65 g avena','120 g plátano','50 g aguacate','250 g queso fresco batido 0%','100 g arándanos','250 ml bebida de almendras sin azúcar'],
+ snack:['65 g cecina de vacuno','100 g pechuga de pavo','150 g queso cottage','250 g queso fresco batido 0%','30 g proteína en polvo','60 g pan integral','23 g Pan Wasa Original','120 g plátano','150 g manzana','100 g arándanos','15 g pistachos','50 g crema de arroz ProCao'],
+ principal:['220 g pechuga de pollo','220 g ternera magra','300 g merluza','250 g bacalao','250 g dorada','200 g salmón','80 g arroz en crudo','300 g patata','90 g pasta en crudo','250 g batata en crudo','300 g verdura','300 g ensalada','12 g AOVE']
+};
+function jcMealKind(label){let t=label.toLowerCase();return t.includes('desayuno')?'desayuno':t.includes('media mañana')||t.includes('merienda')?'snack':'principal';}
+function jcSelected(date,mi){return load(`jcChoices:${date}`,{})[mi]||null;}
+function jcMealTarget(day,date,mi){
+ const plan=planForDay(day),g=v7Targets()[v7Type(day,date)];
+ const shares=plan.map(m=>m[1].reduce((a,x)=>add(a,macros(x)),{kcal:0,p:0,c:0,f:0}));
+ const sum=shares.reduce((a,x)=>add(a,x),{kcal:0,p:0,c:0,f:0});
+ const part=shares[mi];return Object.fromEntries(['kcal','p','c','f'].map(k=>[k,g[k]*(sum[k]?part[k]/sum[k]:1/plan.length)]));
+}
+function jcSum(items){return items.reduce((a,x)=>add(a,macros(x)),{kcal:0,p:0,c:0,f:0});}
+function jcFits(items,target){const m=jcSum(items);return ['kcal','p','c','f'].every(k=>m[k]<=target[k]*(k==='p'?1.28:1.20)+ (k==='kcal'?35:3));}
+function jcComplete(items,target){const m=jcSum(items);return m.kcal>=target.kcal*.82&&m.p>=target.p*.80&&m.c>=target.c*.65&&m.f>=target.f*.55&&jcFits(items,target);}
+function jcSelectorHtml(day,date){
+ const plan=planForDay(day),selected=load(`jcChoices:${date}`,{});
+ const allDone=plan.every((_,i)=>selected[i]?.confirmed);
+ return `<section class="section"><div class="section-title"><h2>🧩 Construye tu menú</h2><span>${Object.values(selected).filter(x=>x.confirmed).length}/${plan.length} confirmadas</span></div><div class="card jc-selector"><p class="note">La app propone alimentos y cantidades. Marca las casillas; las opciones que excedan el margen nutricional se bloquean. Puedes desmarcar alimentos para cambiarlos. Los objetivos por comida se distribuyen proporcionalmente desde tu plan actual.</p>
+ ${plan.map((meal,mi)=>{
+ const st=selected[mi]||{items:[],confirmed:false},target=jcMealTarget(day,date,mi),tot=jcSum(st.items),complete=jcComplete(st.items,target),kind=jcMealKind(meal[0]);
+ const pool=[...new Set([...meal[1],...JC_CHOICES[kind]])].filter(x=>macros(x).known);
+ return `<div class="jc-choice-meal"><div class="jc-choice-heading"><strong>${meal[0]}</strong><span>${st.confirmed?'✓ Confirmada':complete?'✓ Objetivo cubierto':'Pendiente'}</span></div>
+ <div class="jc-choice-macros">${[['kcal','kcal'],['p','P'],['c','HC'],['f','G']].map(([k,n])=>`<span>${n}: <b>${Math.round(tot[k])}</b> / ${Math.round(target[k])}</span>`).join('')}</div>
+ ${st.confirmed?`<div class="jc-closed">${st.items.map(x=>`<div>✓ ${x}</div>`).join('')}<button class="secondary" data-jc-reopen="${mi}">Modificar esta comida</button></div>`:
+ `<div class="jc-food-options">${pool.map((x,fi)=>{const checked=st.items.includes(x),disabled=!checked&&(complete||!jcFits([...st.items,x],target));return `<label class="jc-option ${disabled?'jc-disabled':''}"><input type="checkbox" data-jc-pick="${mi}:${fi}" ${checked?'checked':''} ${disabled?'disabled':''}><span>${x}</span></label>`;}).join('')}</div><p class="note">${complete?'Objetivo cubierto: las demás opciones quedan bloqueadas.': 'Selecciona alimentos hasta cubrir el objetivo. Si ninguna combinación encaja, puedes seguir usando el menú habitual.'}</p><button class="primary" data-jc-confirm="${mi}" ${!complete?'disabled':''}>Confirmar ${meal[0].toLowerCase()}</button>`}
+ </div>`;}).join('')}
+ ${allDone?'<div class="jc-all-done">✓ Menú del día completo. Las alternativas han desaparecido; puedes modificar una comida si lo necesitas.</div>':''}
+ </div></section>`;
+}
+function jcBindSelector(day,date){
+ const plan=planForDay(day);
+ document.querySelectorAll('[data-jc-pick]').forEach(el=>el.onchange=()=>{
+  const [mi,fi]=el.dataset.jcPick.split(':').map(Number),kind=jcMealKind(plan[mi][0]);
+  const pool=[...new Set([...plan[mi][1],...JC_CHOICES[kind]])].filter(x=>macros(x).known),x=pool[fi];
+  const all=load(`jcChoices:${date}`,{}),st=all[mi]||{items:[],confirmed:false};
+  const next=st.items.includes(x)?st.items.filter(y=>y!==x):[...st.items,x];
+  if(!jcFits(next,jcMealTarget(day,date,mi))){el.checked=false;return;}
+  all[mi]={items:next,confirmed:false};save(`jcChoices:${date}`,all);render();
+ });
+ document.querySelectorAll('[data-jc-confirm]').forEach(el=>el.onclick=()=>{
+  const mi=Number(el.dataset.jcConfirm),all=load(`jcChoices:${date}`,{}),st=all[mi];
+  if(!st||!jcComplete(st.items,jcMealTarget(day,date,mi)))return;
+  const omissions=load(`v6MealOmit:${date}`,{});plan[mi][1].forEach((_,fi)=>omissions[`${mi}:${fi}`]=true);save(`v6MealOmit:${date}`,omissions);
+  const adds=load(`v10MealAdds:${date}`,{});adds[String(mi)]=st.items.slice();save(`v10MealAdds:${date}`,adds);
+  all[mi].confirmed=true;save(`jcChoices:${date}`,all);render();
+ });
+ document.querySelectorAll('[data-jc-reopen]').forEach(el=>el.onclick=()=>{
+  const mi=Number(el.dataset.jcReopen),all=load(`jcChoices:${date}`,{});all[mi].confirmed=false;save(`jcChoices:${date}`,all);render();
+ });
+}
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
- document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}${renderExtrasBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
- bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();setTimeout(()=>openRebalanceModal(day,date),90);});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}${jcSelectorHtml(day,date)}${renderExtrasBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
+ bindMealActions(day,date);jcBindSelector(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();setTimeout(()=>openRebalanceModal(day,date),90);});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
 }
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
