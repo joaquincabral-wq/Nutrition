@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.11.0';
+window.JC_NUTRITION_VERSION='9.14.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -26,6 +26,7 @@ const DB=[
  ['melon',['melón','melon'],34,.8,8.2,.2],
  ['qfb',['queso fresco batido'],46,8,4,.2],
  ['cottage',['queso cottage','cottage'],93,13,1.6,4],
+ ['quark_milsani',['quark milsani bajo en grasas','quark milsani','milsani bajo en grasas'],70,12,3.9,0.9],
  ['quark',['quark milbona 20%','queso quark','quark'],97,10.3,3.7,4.3],
  ['wasa',['wasa','pan wasa'],336,9,62,1.5],
  ['lomo_pavo',['lomo de pavo'],215,40,.7,5.8],
@@ -96,6 +97,7 @@ const SMART_FOODS=[
  {name:'Salvado de avena',cat:'hidrato',kcal:246,p:17.3,c:66.2,f:7.0,role:'carb_breakfast'},
  {name:'Queso fresco batido 0%',cat:'lacteo',kcal:46,p:8.0,c:4.0,f:0.2,role:'protein_cold'},
  {name:'Queso cottage',cat:'lacteo',kcal:93,p:13,c:1.6,f:4,role:'protein_cold'},
+ {name:'Quark Milsani bajo en grasas (Aldi)',cat:'lacteo',kcal:70,p:12,c:3.9,f:0.9,role:'protein_cold'},
  {name:'Quark Milbona 20%',cat:'lacteo',kcal:97,p:10.3,c:3.7,f:4.3,role:'protein_cold'},
  {name:'Activia natural edulcorado',cat:'lacteo',kcal:39,p:4.0,c:4.8,f:0.4,role:'dairy_snack'},
  {name:'Tomate natural',cat:'verdura',kcal:18,p:0.9,c:3.9,f:0.2},
@@ -962,7 +964,6 @@ function bindMealActions(day,date){
 }
 function resetDayMenu(day,date){
  if(!confirm('Se perderán los cambios manuales de alimentos y cantidades de este día. ¿Restaurar menú original?')) return;
- localStorage.removeItem('jcChoices:'+date);
  localStorage.removeItem('mealSubs:'+date);
  localStorage.removeItem('v6MealOmit:'+date);
  localStorage.removeItem('v6MealRedis:'+date);
@@ -1017,88 +1018,10 @@ function v73StickyBar(day,date){
  const type=v7Type(day,date),t=v7Targets()[type],cons=consumedTotals(day,date);
  return `<div class="v73sticky" id="v73Sticky"><span>🔥 ${Math.round(cons.kcal)}/${t.kcal}</span><span>P ${Math.round(cons.p)}/${t.p}</span><span>HC ${Math.round(cons.c)}/${t.c}</span><span>G ${Math.round(cons.f)}/${t.f}</span></div>`;
 }
-
-// V9.11: constructor de comidas por selección de alimentos, sin modificar los datos históricos.
-const JC_CHOICES={
- desayuno:['2 huevos','150 ml claras de huevo','200 g queso cottage','30 g proteína en polvo','60 g pan integral','65 g avena','120 g plátano','50 g aguacate','250 g queso fresco batido 0%','100 g arándanos','250 ml bebida de almendras sin azúcar'],
- snack:['65 g cecina de vacuno','100 g pechuga de pavo','150 g queso cottage','250 g queso fresco batido 0%','30 g proteína en polvo','60 g pan integral','23 g Pan Wasa Original','120 g plátano','150 g manzana','100 g arándanos','15 g pistachos','50 g crema de arroz ProCao'],
- principal:['220 g pechuga de pollo','220 g ternera magra','300 g merluza','250 g bacalao','250 g dorada','200 g salmón','80 g arroz en crudo','300 g patata','90 g pasta en crudo','250 g batata en crudo','300 g verdura','300 g ensalada','12 g AOVE']
-};
-function jcMealKind(label){let t=label.toLowerCase();return t.includes('desayuno')?'desayuno':t.includes('media mañana')||t.includes('merienda')?'snack':'principal';}
-function jcSelected(date,mi){return load(`jcChoices:${date}`,{})[mi]||null;}
-function jcMealTarget(day,date,mi){
- const plan=planForDay(day),g=v7Targets()[v7Type(day,date)];
- const shares=plan.map(m=>m[1].reduce((a,x)=>add(a,macros(x)),{kcal:0,p:0,c:0,f:0}));
- const sum=shares.reduce((a,x)=>add(a,x),{kcal:0,p:0,c:0,f:0});
- const part=shares[mi];return Object.fromEntries(['kcal','p','c','f'].map(k=>[k,g[k]*(sum[k]?part[k]/sum[k]:1/plan.length)]));
-}
-function jcSum(items){return items.reduce((a,x)=>add(a,macros(x)),{kcal:0,p:0,c:0,f:0});}
-function jcFoodKey(x){return String(x).toLowerCase().replace(/^\s*\d+(?:[.,]\d+)?\s*(?:g|gr|ml|unidades?|uds?\.?|huevos?)?\s*/,'').replace(/\s+/g,' ').trim();}
-function jcPool(meal){
- const kind=jcMealKind(meal[0]),pool=[],keys=new Set();
- [...meal[1],...JC_CHOICES[kind]].forEach(x=>{const key=jcFoodKey(x);if(!keys.has(key)&&macros(x).known){pool.push(x);keys.add(key);}});
- return pool;
-}
-function jcMealState(date,mi,meal){
- const saved=jcSelected(date,mi);
- if(saved)return saved;
- // La propuesta inicial es exactamente el plan vigente, sin alterar datos anteriores.
- return {items:meal[1].filter(x=>macros(x).known),confirmed:false,editing:false,initial:true};
-}
-function jcStatus(v,t,k){
- if(!t)return 'neutral';const r=v/t;
- if(k==='p')return r>=.90&&r<=1.15?'green':r>=.80&&r<=1.25?'yellow':'red';
- if(k==='kcal')return r>=.92&&r<=1.08?'green':r>=.85&&r<=1.15?'yellow':'red';
- return r>=.90&&r<=1.10?'green':r>=.80&&r<=1.20?'yellow':'red';
-}
-function jcOverall(items,target){const m=jcSum(items);const statuses=['kcal','p','c','f'].map(k=>jcStatus(m[k],target[k],k));return statuses.includes('red')?'red':statuses.includes('yellow')?'yellow':'green';}
-function jcFits(items,target){const m=jcSum(items);return ['kcal','p','c','f'].every(k=>m[k]<=target[k]*(k==='p'?1.25:k==='kcal'?1.15:1.20)+1);}
-function jcComplete(items,target){return items.length>0&&jcOverall(items,target)==='green';}
-function jcSelectorHtml(day,date){
- const plan=planForDay(day),selected=load(`jcChoices:${date}`,{});
- const allDone=plan.every((_,i)=>selected[i]?.confirmed);
- const count=plan.filter((_,i)=>selected[i]?.confirmed).length;
- return `<section class="section"><div class="section-title"><h2>Menú de hoy</h2><span>${count}/${plan.length} confirmadas</span></div><div class="card jc-selector">
- ${plan.map((meal,mi)=>{
- const st=jcMealState(date,mi,meal),target=jcMealTarget(day,date,mi),tot=jcSum(st.items),overall=jcOverall(st.items,target),pool=jcPool(meal);
- const statusText=st.confirmed?'✓ Confirmada':overall==='green'?'✓ Dentro del objetivo':overall==='yellow'?'△ Revisar balance':'! Desviación nutricional';
- const statusClass=st.confirmed?'green':overall;
- const macroHtml=['kcal','p','c','f'].map(k=>{const label={kcal:'kcal',p:'P',c:'HC',f:'G'}[k];return `<span class="jc-macro jc-${jcStatus(tot[k],target[k],k)}">${label}: <b>${Math.round(tot[k])}</b> / ${Math.round(target[k])}</span>`;}).join('');
- const locked=st.confirmed||!st.editing;
- return `<details class="jc-choice-meal jc-compact-meal" ${st.editing?'open':''}><summary class="jc-choice-heading"><strong>${meal[0]}</strong><span class="jc-state jc-${statusClass}">${statusText}</span></summary><div class="jc-choice-macros">${macroHtml}</div>
- ${locked?`<div class="jc-closed">${st.items.map(x=>`<div>✓ ${x}</div>`).join('')}</div>${st.confirmed?`<button class="secondary" data-jc-edit="${mi}">Modificar esta comida</button>`:`<div class="jc-actions"><button class="primary" data-jc-accept="${mi}">Aceptar plan</button><button class="secondary" data-jc-edit="${mi}">Cambiar alimentos</button></div>`}`:
- `<div class="jc-food-options">${pool.map((x,fi)=>{const checked=st.items.includes(x),disabled=!checked&&!jcFits([...st.items,x],target);return `<label class="jc-option ${disabled?'jc-disabled':''}"><input type="checkbox" data-jc-pick="${mi}:${fi}" ${checked?'checked':''} ${disabled?'disabled':''}><span>${x}</span></label>`;}).join('')}</div><p class="note">${overall==='green'?'Balance dentro del margen. Puedes confirmar la selección.':overall==='yellow'?'Hay una desviación moderada; revisa las alternativas.':'Hay una desviación importante; sustituye alimentos para mejorar el balance.'} Las opciones que superarían los límites superiores se bloquean.</p><div class="jc-actions"><button class="primary" data-jc-accept="${mi}" ${overall==='red'?'disabled':''}>Confirmar selección</button><button class="secondary" data-jc-restore="${mi}">Restaurar plan previsto</button></div>`}
- </details>`;}).join('')}
- ${allDone?'<div class="jc-all-done">✓ Menú del día confirmado. Puedes reabrir cualquier comida para modificarla.</div>':''}</div></section>`;
-}
-function jcBindSelector(day,date){
- const plan=planForDay(day);
- const getAll=()=>load(`jcChoices:${date}`,{});
- document.querySelectorAll('[data-jc-edit]').forEach(el=>el.onclick=()=>{const mi=Number(el.dataset.jcEdit),all=getAll();all[mi]={...jcMealState(date,mi,plan[mi]),confirmed:false,editing:true};save(`jcChoices:${date}`,all);render();});
- document.querySelectorAll('[data-jc-restore]').forEach(el=>el.onclick=()=>{const mi=Number(el.dataset.jcRestore),all=getAll();all[mi]={items:plan[mi][1].filter(x=>macros(x).known),confirmed:false,editing:true,initial:true};save(`jcChoices:${date}`,all);render();});
- document.querySelectorAll('[data-jc-pick]').forEach(el=>el.onchange=()=>{
-  const [mi,fi]=el.dataset.jcPick.split(':').map(Number),pool=jcPool(plan[mi]),x=pool[fi];
-  const all=getAll(),st=jcMealState(date,mi,plan[mi]);
-  const next=st.items.includes(x)?st.items.filter(y=>y!==x):[...st.items,x];
-  if(!jcFits(next,jcMealTarget(day,date,mi))&&next.length>st.items.length){el.checked=false;return;}
-  all[mi]={...st,items:next,confirmed:false,editing:true,initial:false};save(`jcChoices:${date}`,all);render();
- });
- document.querySelectorAll('[data-jc-accept]').forEach(el=>el.onclick=()=>{
-  const mi=Number(el.dataset.jcAccept),all=getAll(),st=jcMealState(date,mi,plan[mi]);
-  if(!st.items.length)return;
-  const overall=jcOverall(st.items,jcMealTarget(day,date,mi));
-  if(overall==='red'&&!st.initial){alert('Esta combinación presenta una desviación importante. Revisa los alimentos antes de confirmar.');return;}
-  if(overall!=='green'&&!confirm('El balance nutricional de esta comida no está completamente dentro del objetivo. ¿Quieres mantener esta selección?'))return;
-  // Sólo la confirmación escribe el menú personalizado en los registros existentes.
-  const omissions=load(`v6MealOmit:${date}`,{});plan[mi][1].forEach((_,fi)=>omissions[`${mi}:${fi}`]=true);save(`v6MealOmit:${date}`,omissions);
-  const adds=load(`v10MealAdds:${date}`,{});adds[String(mi)]=st.items.slice();save(`v10MealAdds:${date}`,adds);
-  all[mi]={...st,confirmed:true,editing:false};save(`jcChoices:${date}`,all);render();
- });
-}
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));
- document.getElementById('content').innerHTML=`<section class="section"><div class="jc-today-date">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}</div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${jcSelectorHtml(day,date)}${renderExtrasBlock(day,date)}`;
- bindMealActions(day,date);jcBindSelector(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();setTimeout(()=>openRebalanceModal(day,date),90);});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
+ document.getElementById('content').innerHTML=`<section class="section"><div class="card hero"><div class="eyebrow">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</div><h2>Plan de alimentación</h2><p>Comidas, macros, medidas y progreso corporal.</p></div></section>${v7ObjectivePanel(day,date)}${v73StickyBar(day,date)}${macroBlock(day,date)}${renderExtrasBlock(day,date)}<section class="section"><div class="section-title"><h2>Comidas de hoy</h2><span>${plan.length} comidas</span></div><div class="card compact-tools"><strong>⚖ Equivalencias inteligentes</strong><p class="note">Al pulsar Cambiar, la app propone una cantidad equivalente y recalcula automáticamente los macros del día.</p><button class="secondary" id="reset-day-menu">↺ Restaurar menú original</button></div><div id="v7TodayMeals">${ordered.map(x=>mealCard(day,date,x.m,x.i,true)).join('')}</div></section>`;
+ bindMealActions(day,date);const rb=document.getElementById('reset-day-menu');if(rb)rb.onclick=()=>resetDayMenu(day,date);const dt=document.getElementById('v7DayType');if(dt)dt.onchange=()=>{const x=load('v7DayTypes',{});x[date]=dt.value;save('v7DayTypes',x);render();};const et=document.getElementById('v7EditTargets');if(et)et.onclick=()=>v7EditTargets(day,date);const ap=document.getElementById('v82Apply');if(ap)ap.onclick=()=>window.__v82Advice&&v82ApplyAdvice(date,window.__v82Advice);const ex=document.getElementById('addExtraBtn');if(ex)ex.onclick=()=>openExtraModal(day,date);const rx=document.getElementById('rebalanceExtrasBtn');if(rx)rx.onclick=()=>openRebalanceModal(day,date);document.querySelectorAll('[data-extra-remove]').forEach(b=>b.onclick=()=>{const a=dayExtras(date);a.splice(Number(b.dataset.extraRemove),1);save(`dayExtras:${date}`,a);render();setTimeout(()=>openRebalanceModal(day,date),90);});document.querySelectorAll('[data-extra-frequent]').forEach(b=>b.onclick=()=>openExtraModal(day,date,b.dataset.extraFrequent));
 }
 function renderMeals(){
  const days=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];

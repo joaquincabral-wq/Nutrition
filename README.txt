@@ -20,4 +20,4 @@ V9.10.7: añade una sección visible y específica 'Equivalencias de verduras' d
 
 - V9.10.8: coles de Bruselas congeladas incorporadas a Alimentos, Cambiar alimento y equivalencias de verduras de Bascula. Etiqueta por 100 g: 42 kcal, P 3.1 g, HC 4.8 g, grasas <0.5 g (estimacion interna 0.49 g). Pesaje congelado antes de cocinar.
 
-V9.13.0: eliminada pestaña Training; vista Hoy simplificada, sin listado duplicado de comidas; menú por secciones desplegables. Las funciones previas de edición siguen en Comidas.
+V9.14.0: Base V9.10.8 con seleccion libre desde Hoy; Quark Milsani bajo en grasas (Aldi) incorporado de serie (por 100 g: 70 kcal, 12 g proteina, 3.9 g HC, 0.9 g grasa); eliminado acceso a Training. Conserva datos locales existentes.
