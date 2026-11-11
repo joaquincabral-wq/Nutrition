@@ -1,4 +1,4 @@
-window.JC_NUTRITION_VERSION='9.14.0';
+window.JC_NUTRITION_VERSION='9.15.0';
 
 const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
@@ -14,7 +14,7 @@ const BASE_MEALS={
 
 const DB=[
  ['avena',['avena'],389,16.9,66.3,6.9],
- ['whey',['whey','proteina en polvo','proteína en polvo'],363.3,89,0.33,1.33],
+ ['whey',['whey','proteina en polvo','proteína en polvo'],373.3,85,3.33,2],
  ['arandanos',['arándanos','arandanos'],57,.7,14.5,.3],
  ['bebida_almendras',['bebida de almendras'],15,.5,.3,1.1],
  ['pollo',['pollo','pollo/pavo'],120,23,0,2.6],
@@ -124,7 +124,8 @@ const SMART_FOODS=[
  {name:'Fresas',cat:'fruta',kcal:32,p:0.7,c:7.7,f:0.3},
  {name:'AOVE',cat:'grasa',kcal:884,p:0,c:0,f:100},
  {name:'Crema de arroz ProCao',cat:'hidrato',kcal:352,p:8.8,c:74,f:1.5,role:'carb_breakfast_snack'},
- {name:'Proteína en polvo',cat:'proteina',kcal:363.3,p:89,c:.33,f:1.33,role:'protein_powder'},
+ {name:'Proteína en polvo',cat:'proteina',kcal:373.3,p:85,c:3.33,f:2,role:'protein_powder'},
+ {name:'VitOBest Milk Protein Isolate 90 - Chocolate',cat:'proteina',kcal:373.3,p:85,c:3.33,f:2,role:'protein_powder'},
  {name:'Pan Wasa Original',cat:'hidrato',kcal:336,p:9,c:62,f:1.5,role:'carb_snack',pieceGrams:11.4},
  {name:'Pan integral',cat:'hidrato',kcal:262,p:12,c:44,f:3.3,role:'carb_snack'},
  {name:'Lomo de pavo Mercadona',cat:'proteina',kcal:215,p:40,c:.7,f:5.8,role:'protein_cold'},
@@ -1007,7 +1008,7 @@ function v7ObjectivePanel(day,date){
  window.__v82Advice=ad.action;
  return `<section class="section"><div class="section-title"><h2>Objetivo del dia</h2><span>${label}</span></div><div class="card v7panel">
  <label class="field"><span>Tipo de dia</span><select id="v7DayType" class="input"><option value="training"${type==='training'?' selected':''}>Fuerza</option><option value="training_high"${type==='training_high'?' selected':''}>Fuerza · HC alto</option><option value="cardio"${type==='cardio'?' selected':''}>Cardio / LISS</option><option value="rest"${type==='rest'?' selected':''}>Descanso</option></select></label>
- <p class="note">Cada fila muestra <strong>consumido / objetivo</strong>. Solo suma comidas marcadas como realizadas y Extras registrados.</p>
+ <p class="note">Las filas siguientes muestran <strong>consumido / objetivo</strong> (solo comidas marcadas como realizadas). La barra superior muestra el <strong>plan actualizado</strong>, que cambia al añadir, sustituir u omitir alimentos.</p>
  ${row('Calorias','kcal','kcal')}${row('Proteina','p','g')}${row('Hidratos','c','g')}${row('Grasas','f','g')}
  <div class="v81summary ${planOverall}"><strong>${planMsg}</strong><div class="note" style="margin-top:6px">Plan completo: ${Math.round(plan.kcal)} kcal · P ${Math.round(plan.p)} · HC ${Math.round(plan.c)} · G ${Math.round(plan.f)}</div></div>
  <div class="v82advice">${ad.html}${ad.action?'<button id="v82Apply" class="primary" type="button">Aplicar ajuste</button>':''}</div>
@@ -1015,8 +1016,8 @@ function v7ObjectivePanel(day,date){
 }
 function v7EditTargets(day,date){const all=v7Targets(),type=v7Type(day,date),t=all[type];const q=(x,v)=>prompt(x,String(v));const a=[q('Calorías objetivo',t.kcal),q('Proteína objetivo (g)',t.p),q('Hidratos objetivo (g)',t.c),q('Grasas objetivo (g)',t.f)];if(a.some(x=>x===null))return;const n=a.map(Number);if(n.some(x=>!Number.isFinite(x)||x<0)){alert('Introduce valores válidos.');return;}all[type]={kcal:n[0],p:n[1],c:n[2],f:n[3]};save('v7Targets',all);render();}
 function v73StickyBar(day,date){
- const type=v7Type(day,date),t=v7Targets()[type],cons=consumedTotals(day,date);
- return `<div class="v73sticky" id="v73Sticky"><span>🔥 ${Math.round(cons.kcal)}/${t.kcal}</span><span>P ${Math.round(cons.p)}/${t.p}</span><span>HC ${Math.round(cons.c)}/${t.c}</span><span>G ${Math.round(cons.f)}/${t.f}</span></div>`;
+ const type=v7Type(day,date),t=v7Targets()[type],plan=dayTotals(day,date);
+ return `<div class="v73sticky" id="v73Sticky" aria-label="Plan actualizado del día frente a objetivo"><span>Plan 🔥 ${Math.round(plan.kcal)}/${t.kcal}</span><span>P ${Math.round(plan.p)}/${t.p}</span><span>HC ${Math.round(plan.c)}/${t.c}</span><span>G ${Math.round(plan.f)}/${t.f}</span></div>`;
 }
 function renderToday(){
  const d=new Date(),day=dayKey(d),date=localISO(d),plan=planForDay(day),done=load(`meals:${date}`,{}),skipped=skippedMeals(date);const ordered=plan.map((m,i)=>({m,i,done:!!done[i],skipped:!!skipped[i]})).sort((a,b)=>((a.done?2:a.skipped?1:0)-(b.done?2:b.skipped?1:0)));

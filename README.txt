@@ -21,3 +21,5 @@ V9.10.7: añade una sección visible y específica 'Equivalencias de verduras' d
 - V9.10.8: coles de Bruselas congeladas incorporadas a Alimentos, Cambiar alimento y equivalencias de verduras de Bascula. Etiqueta por 100 g: 42 kcal, P 3.1 g, HC 4.8 g, grasas <0.5 g (estimacion interna 0.49 g). Pesaje congelado antes de cocinar.
 
 V9.14.0: Base V9.10.8 con seleccion libre desde Hoy; Quark Milsani bajo en grasas (Aldi) incorporado de serie (por 100 g: 70 kcal, 12 g proteina, 3.9 g HC, 0.9 g grasa); eliminado acceso a Training. Conserva datos locales existentes.
+
+V9.15.0: La barra superior muestra el plan diario actualizado, que reacciona a omitir/restaurar/sustituir/añadir alimentos incluso antes de marcar la comida como consumida. El panel 'Consumido' sigue contabilizando solo comidas realizadas. VitOBest Milk Protein Isolate 90 Chocolate de serie (por 100 g: 373.3 kcal, P 85, HC 3.33, G 2), y el alimento genérico 'proteína en polvo' usa los mismos valores. Datos nutricionales comunicados previamente por el usuario, pendientes de cotejo con etiqueta actual.
